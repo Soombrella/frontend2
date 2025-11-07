@@ -1,4 +1,5 @@
-import './main.css';
+import './main.css';     // 메인 전용 스타일
+import PriceTable from './PriceTable';  // ← 새로 만든 표 컴포넌트
 
 export default function Main() {
   return (
@@ -9,6 +10,7 @@ export default function Main() {
         <button className="LoginBtn">로그인</button>
       </header>
 
+
       <section className="Notice">
         <p>
           대여 장소 | 학생회관 408호 총학생회실<br/>
@@ -18,14 +20,9 @@ export default function Main() {
           *케이블 2,000원 추가 / 계좌이체만 가능*<br/>
           반납 기한 | 대여일 포함 3일 이내
         </p>
-        <div className="PriceCard">
-          <div className="Chip yellow">우산</div>
-          <div className="ImgStub">요금표 이미지</div>
-        </div>
-        <div className="PriceCard">
-          <div className="Chip blue">보조배터리</div>
-          <div className="ImgStub">요금표 이미지</div>
-        </div>
+
+        {/* 요금표 이미지 자리 → 실제 표로 교체 */}
+        <PriceTable />
       </section>
 
       <section className="PickGrid">
