@@ -1,0 +1,170 @@
+/* 화면 폭 제한 + 여백 */
+.umbrella-container {
+  min-height: 100vh;
+  max-width: 420px;                 /* 모바일 폭 제한 */
+  margin: 0 auto;
+  padding: 28px 20px 96px;          /* 하단 탭(64) + 여유 */
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #222;
+  font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+}
+
+/* 헤더: 좌우 버튼은 가장자리, 타이틀은 딱 중앙 */
+.umbrella-header {
+  position: relative;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.umbrella-header h2 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;                 /* 굵게 */
+  letter-spacing: 0.3px;
+}
+
+.back-btn {
+  background: none;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 4px;
+  cursor: pointer;
+  color: #151515;
+}
+
+.procedure-btn {
+  background-color: #0b2d57;
+  color: #fff;
+  border: none;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;              /* 알약 모양 */
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 상단 정보 영역 */
+.umbrella-info {
+  text-align: center;
+  margin: 24px 0 6px;
+  font-size: 14px;
+  color: #2a2a2a;
+  line-height: 1.6;
+}
+.umbrella-info strong {
+  font-weight: 800;
+}
+
+.umbrella-notice {
+  text-align: center;
+  color: #214a82;                   /* 파란 공지색 */
+  font-size: 13.5px;
+  margin-bottom: 22px;
+}
+
+/* 필드 라벨/인풋 */
+.umbrella-field {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: 110px 1fr; /* 라벨 고정폭 */
+  align-items: center;
+  column-gap: 14px;
+}
+
+.umbrella-field > label {
+  font-size: 15px;
+  color: #222;
+}
+
+/* react-datepicker input 에 직접 적용됨 */
+.date-picker {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background: #f7f7f8;              /* 밝은 회색 배경 */
+  border: 1px solid #e6e8ea;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* 라디오 그룹 */
+.checkbox-group {
+  grid-template-columns: 110px 1fr;
+}
+.checkbox-group > div {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #222;
+}
+.checkbox-group input[type="radio"] {
+  width: 16px; height: 16px;
+}
+
+/* 보증금 안내 */
+.deposit-info {
+  color: #e02525;
+  font-size: 13.5px;
+  text-align: center;
+  margin: 26px 0 20px;
+}
+
+/* 신청 버튼: 가운데, 알약 모양 */
+.submit-btn {
+  align-self: center;
+  width: 88%;
+  max-width: 360px;
+  height: 46px;
+  background: #000;
+  color: #fff;
+  border: 0;
+  border-radius: 22px;
+  font-size: 15.5px;
+  font-weight: 700;
+  margin-top: 10px;
+  margin-bottom: 24px;              /* 탭과 간격 */
+  cursor: pointer;
+}
+
+/* 모달 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.modal {
+  background: #fff;
+  width: calc(100% - 48px);
+  max-width: 360px;
+  padding: 20px 18px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.modal button {
+  margin-top: 12px;
+  background: #0b2d57;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* datepicker 팝업이 탭/모달 위로 뜨도록 */
+.react-datepicker-popper { z-index: 2000; }
