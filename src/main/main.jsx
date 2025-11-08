@@ -38,7 +38,7 @@ export default function Main() {
         </div>
         <div className="PickCard">
           <div className="Photo">이미지</div>
-          <button className="PickBtn dark">보조배터리</button>
+          <Link to="/battery" className="PickBtn dark">보조배터리</Link>
         </div>
       </section>
 
