@@ -1,0 +1,70 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  width: min(92vw, 420px);
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px 20px 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f2f2f2;
+  font-size: 20px;
+  line-height: 28px;
+  cursor: pointer;
+}
+
+.modal-body {
+  color: #0f1d40;
+  line-height: 1.7;
+  text-align: left;       /* ← 왼쪽 정렬 */
+  font-size: 14px;
+}
+
+.modal-body p {
+  margin: 10px 0 12px;    /* 문단 간격 */
+}
+
+.bullet {
+  margin: 10px 0 14px;
+  padding-left: 20px;
+}
+
+.bullet li {
+  margin-bottom: 6px;
+  list-style-type: disc;
+}
+
+.accent {
+  color: #1e3a8a;
+}
+
+.accent.strong {
+  font-weight: 800;
+  text-align: center;      /* 강조 문단만 중앙 */
+  margin-bottom: 14px;
+}
+
+.accent.small {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
