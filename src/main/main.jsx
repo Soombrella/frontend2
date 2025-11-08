@@ -1,5 +1,8 @@
+import { Link } from 'react-router-dom';
 import './main.css';     // 메인 전용 스타일
 import PriceTable from './PriceTable';  // ← 새로 만든 표 컴포넌트
+import BottomTab from '../components/BottomTab';
+import '../components/BottomTab.css';
 
 export default function Main() {
   return (
@@ -28,7 +31,7 @@ export default function Main() {
       <section className="PickGrid">
         <div className="PickCard">
           <div className="Photo">이미지</div>
-          <button className="PickBtn">우산</button>
+          <Link to="/rent" className="PickBtn">우산</Link>
         </div>
         <div className="PickCard">
           <div className="Photo">이미지</div>
@@ -42,6 +45,7 @@ export default function Main() {
         <a className="FlatBtn" href="#">약관</a>
         <a className="FlatBtn" href="#">개인정보 처리방침</a>
       </footer>
+      <BottomTab />
     </main>
   );
 }

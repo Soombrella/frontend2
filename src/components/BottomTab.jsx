@@ -13,7 +13,7 @@ export default function BottomTab() {
       </NavLink>
 
       {/* 프로필 없어서 임시로 /login으로 연결해둠! */}
-      <NavLink to="/profile" className={({ isActive }) => "tab-item" + (isActive ? " active" : "")}>
+      <NavLink to="/login" className={({ isActive }) => "tab-item" + (isActive ? " active" : "")}>
         <svg viewBox="0 0 24 24" className="tab-icon" aria-hidden="true">
           <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5C21 16.5 17 14 12 14z" fill="currentColor"/>
         </svg>
