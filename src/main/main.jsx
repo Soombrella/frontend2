@@ -7,7 +7,7 @@ export default function Main() {
       <header className="Nav">
         <button className="BackBtn" aria-label="뒤로가기">←</button>
         <h1 className="Brand">SoomBrella</h1>
-        <button className="LoginBtn">로그인</button>
+        <a className="LoginBtn" href="/login">로그인</a>
       </header>
 
 
