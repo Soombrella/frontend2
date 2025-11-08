@@ -1,0 +1,87 @@
+
+/* 메인 컨테이너 */
+.Main{max-width:420px;margin:0 auto;padding:12px 16px 24px;font-family:system-ui,-apple-system,Roboto,'Noto Sans KR',Arial}
+
+/* 헤더 */
+.Nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.BackBtn{border:none;background:transparent;font-size:20px;padding:6px 8px;cursor:pointer}
+.Brand{margin:0;font-size:18px}
+.LoginBtn{background:#111;color:#fff;border:none;border-radius:18px;padding:6px 12px;cursor:pointer}
+
+/* 안내/요금표 */
+.Notice{background:#f5f7fb;border-radius:12px;padding:14px;font-size:13px;line-height:1.5;box-shadow:inset 0 0 0 1px #e8ecf5}
+.PriceCard{background:#fff;border-radius:12px;padding:10px;margin-top:10px;border:1px solid #eef1f6}
+.Chip{display:inline-block;font-weight:700;font-size:12px;padding:6px 10px;border-radius:8px;margin-bottom:8px}
+.Chip.yellow{background:#fff7c2}
+.Chip.blue{background:#e5f2ff}
+.ImgStub{height:120px;border:1px dashed #d0d5dd;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#98a2b3}
+
+/* 선택 카드 */
+.PickGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.PickCard{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff}
+.Photo{height:86px;border:1px dashed #d1d5db;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#9aa3b2;margin-bottom:10px}
+.PickBtn{width:100%;border-radius:10px;padding:10px 12px;border:1px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer}
+.PickBtn.dark{background:#111;color:#fff;border-color:#111}
+
+/* CTA */
+.CTA{display:block;text-align:center;background:#dbe9ff;color:#0f1d40;text-decoration:none;padding:14px 12px;border-radius:12px;font-weight:700;margin:6px 0 14px}
+
+/* 푸터 링크 */
+.Footer{display:flex;gap:10px}
+.FlatBtn{flex:1;text-align:center;text-decoration:none;color:#111;border:1px solid #e5e7eb;border-radius:12px;padding:12px 0;background:#fff}
+
+.Notice { 
+  text-align: center;             /* 추가 */
+}
+
+/* --- 요금표 컨테이너 --- */
+.PriceTable{ margin-top:12px; display:grid; gap:16px; }
+
+/* 카드 */
+.TableCard{
+  background:#fff; border:1px solid #eef1f6; border-radius:12px;
+  padding:12px; box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+
+/* 머리표시 */
+.Pill{ display:block; width:max-content; margin:0 auto 10px; padding:8px 16px;
+  border-radius:999px; font-weight:700; font-size:14px; }
+.pill-yellow{ background:#fff7c2; }
+.pill-blue{ background:#e5f2ff; }
+
+/* 표: 폭 균등 + 가운데 정렬 */
+.Table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;            /* 열 폭 균등 */
+  background:#fff;
+  font-size:13px;
+}
+.Table th,.Table td{
+  width:25%;
+  padding:14px 8px;
+  text-align:center;
+  vertical-align:middle;
+  border:1px solid #e5e7eb;
+  word-break:keep-all;           /* 한국어 줄바꿈 깔끔 */
+  line-height:1.4;
+}
+.Table thead th{ background:#f8fafc; font-weight:700; }
+
+/* 안내문: 두 줄 시작선 통일 */
+.Notes{
+  margin-top:8px;
+  padding:0 14px;                /* 표 안쪽과 시각적으로 맞춤 */
+}
+.Note{
+  margin:6px 0 0;
+  color:#374151;
+  font-size:12.5px;
+  line-height:1.6;
+  text-align:left;
+}
+.Note.warning{
+  margin-top:10px;
+  color:#b91c1c;
+  font-weight:600;
+}
