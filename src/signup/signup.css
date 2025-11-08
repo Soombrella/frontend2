@@ -1,0 +1,59 @@
+.SignupWrap{max-width:420px;margin:0 auto;padding:18px 16px 28px;font-family:system-ui,'Noto Sans KR',Arial}
+
+.SignupHeader {
+  display:flex;
+  align-items:center;              /* 세로 중앙 맞춤 */
+  justify-content:space-between;   /* 왼쪽(화살표+제목) / 오른쪽(버튼) */
+  margin-bottom:16px;
+}
+.HeaderLeft {
+  display:flex;
+  align-items:center;
+  gap:10px;                        /* 화살표-제목 간격 */
+}
+.BackBtn {
+  border:0;
+  background:transparent;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.Title {
+  margin:0;
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+}
+
+.BackBtn{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer}
+
+.NextBtn{border:0;background:#111;color:#fff;border-radius:18px;padding:8px 12px;cursor:pointer}
+
+.Form{display:grid;gap:10px;margin-top:10px}
+.Label{font-size:13px;color:#111}
+.Input{height:42px;border:0;background:#f2f2f2;border-radius:10px;padding:0 12px;font-size:14px}
+.Row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.SmallBtn{border:0;background:#eaeaea;border-radius:10px;padding:0 12px;font-size:13px}
+.SelectWrap{position:relative}
+.Select{appearance:none;-webkit-appearance:none;width:100%;height:42px;border:0;background:#f2f2f2;border-radius:10px;padding:0 36px 0 12px;font-size:14px}
+.Chevron{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#666;font-size:14px}
+.Form {
+  display:grid;
+  gap:14px;               /* 입력칸 사이 여백 늘림 */
+  margin-top:8px;
+}
+.Row {
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;               /* 아이디 입력칸과 중복확인 버튼 간격 */
+}
+.Select {
+  height:44px;
+  padding:0 36px 0 12px;
+}
+.Input {
+  height:44px;
+}
+.Form p {
+  margin-top:4px;
+}
