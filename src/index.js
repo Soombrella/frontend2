@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Main from './main/main.jsx';
 import Login from './login/login.jsx';
 import UmbrellaRent from './urent/UmbrellaRent.jsx';
+import Signup from './signup/Signup.jsx';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,6 +19,7 @@ root.render(
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<Login />} />  {/* 임시 */}
         <Route path="/rent" element={<UmbrellaRent />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="*" element={<h1>404</h1>} />
       </Routes>
     </BrowserRouter>
