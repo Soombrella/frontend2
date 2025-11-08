@@ -85,3 +85,27 @@
   color:#b91c1c;
   font-weight:600;
 }
+
+.CTA{
+  display:block;               /* 가로 100% 차지 */
+  width:100%;
+  box-sizing:border-box;       /* 패딩 포함 폭 계산 */
+  padding:14px 12px;
+  border-radius:12px;
+  background:#dbe9ff;
+  border:1px solid #dbe9ff;    /* 테두리도 배경과 동일하게 */
+  color:#0f1d40;
+  text-align:center;
+  text-decoration:none;
+  font: inherit;               /* 버튼 기본 폰트 무시하고 상위 폰트 사용 */
+  font-weight:700;
+  cursor:pointer;
+
+  /* 브라우저 기본 버튼 외형 제거 */
+  appearance:none;
+  -webkit-appearance:none;
+  outline:none;
+}
+
+.CTA:hover{ filter:brightness(0.98); }
+.CTA:focus-visible{ outline:2px solid #0b2d57; outline-offset:2px; }

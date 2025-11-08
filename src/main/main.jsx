@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import './main.css';     // 메인 전용 스타일
+import { useState } from 'react';
+import NoticeModal from '../components/NoticeModal';
 import PriceTable from './PriceTable';  // ← 새로 만든 표 컴포넌트
 import BottomTab from '../components/BottomTab';
 import '../components/BottomTab.css';
 
 export default function Main() {
+  const [openNotice, setOpenNotice] = useState(false);
   return (
     <main className="Main">
       <header className="Nav">
@@ -39,13 +42,17 @@ export default function Main() {
         </div>
       </section>
 
-      <a className="CTA" href="#">대여 전 꼭 확인해주세요</a>
+      <button
+       type="button"
+       className="CTA"
+       onClick={() => setOpenNotice(true)} >대여 전 꼭 확인해주세요</button>
 
       <footer className="Footer">
         <a className="FlatBtn" href="#">약관</a>
         <a className="FlatBtn" href="#">개인정보 처리방침</a>
       </footer>
       <BottomTab />
+      <NoticeModal open={openNotice} onClose={() => setOpenNotice(false)} />
     </main>
   );
 }
