@@ -10,6 +10,7 @@ import Login from './login/login.jsx';
 import UmbrellaRent from './urent/UmbrellaRent.jsx';
 import Signup from './signup/Signup.jsx';
 import PowerBankRent from './prent/PowerBankRent.jsx';
+import AdminLayout from './admin/AdminLayout';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -22,6 +23,7 @@ root.render(
         <Route path="/rent" element={<UmbrellaRent />} />
         <Route path="/battery" element={<PowerBankRent />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/admin/*" element={<AdminLayout />}/>  {/* 관리자 */}
         <Route path="*" element={<h1>404</h1>} />
       </Routes>
     </BrowserRouter>
