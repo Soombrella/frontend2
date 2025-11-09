@@ -11,22 +11,34 @@ import UmbrellaRent from './urent/UmbrellaRent.jsx';
 import Signup from './signup/Signup.jsx';
 import PowerBankRent from './prent/PowerBankRent.jsx';
 import AdminLayout from './admin/AdminLayout';
+import { AuthProvider } from './auth/AuthContext';
+import ProtectedRoute from './auth/ProtectedRoute';
+import MyPage from './mypage/MyPage.jsx'; // 마이페이지 컴포넌트
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Main />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Login />} />
         <Route path="/rent" element={<UmbrellaRent />} />
         <Route path="/battery" element={<PowerBankRent />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/admin/*" element={<AdminLayout />}/>  {/* 관리자 */}
-        <Route path="*" element={<h1>404</h1>} />
-      </Routes>
-    </BrowserRouter>
+        <Route
+          path="/mypage"
+          element={
+            <ProtectedRoute>
+              <MyPage />
+            </ProtectedRoute>
+          }
+        />
+          <Route path="/admin/*" element={<AdminLayout />}/> {/* 관리자 */}
+          <Route path="*" element={<h1>404</h1>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>
 );
 

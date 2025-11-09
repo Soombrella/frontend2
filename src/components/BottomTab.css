@@ -32,3 +32,5 @@
 
 .tab-icon { width: 24px; height: 24px; }
 .tab-label { font-size: 12px; }
+/* 버튼을 링크처럼 보이게 */
+.tab-button { background: none; border: 0; padding: 0; font: inherit; color: inherit; }
