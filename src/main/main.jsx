@@ -9,19 +9,27 @@ import PrivacyModal from "../legal/PrivacyModal";
 import '../components/BottomTab.css';
 import umbrellaImg from '../assets/umbrella.jpg';
 import batteryImg from '../assets/powerbank.jpg';
+import { useAuth } from '../auth/AuthContext';
 
 
 export default function Main() {
   const [openNotice, setOpenNotice] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const { user, logout } = useAuth();
   return (
     <main className="Main">
       <header className="Nav">
         <Link to="/" className="BrandLink">SoomBrella</Link>
-        <a className="LoginBtn" href="/login">로그인</a>
-      </header>
 
+        {user ? (
+    // 로그인 상태: 로그아웃만 표시
+          <button className="LoginBtn" onClick={logout}>로그아웃</button>
+        ) : (
+    // 미로그인 상태: 로그인 버튼
+          <Link className="LoginBtn" to="/login">로그인</Link>
+      )}
+      </header>
 
       <section className="Notice">
         <p>
