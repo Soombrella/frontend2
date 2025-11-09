@@ -2,12 +2,19 @@
 import './signup.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../auth/AuthContext';
+
+// 로컬 저장 키
+const USERS_KEY = 'sb_users';
+const loadUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+const saveUsers = (arr) => localStorage.setItem(USERS_KEY, JSON.stringify(arr));
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
-    name: '', dept: '', username: '', phone: '', password: '', email: '', account: ''
+    name: '', dept: '', username: '', phone: '', password: '', email: '', account: '', birth: ''
   });
   const [idChecked, setIdChecked] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -19,15 +26,16 @@ export default function Signup() {
     if (name === 'username') setIdChecked(false);
   };
 
+  // ✅ 백엔드 없이 로컬에서 아이디(학번) 중복확인
   const checkId = async () => {
     if (!form.username.trim()) return;
     setChecking(true);
     try {
-      const res = await fetch(`/api/users/check-id?username=${encodeURIComponent(form.username)}`);
-      const data = await res.json();   // { available: boolean }
-      setIdChecked(Boolean(data.available));
-    } catch {
-      setIdChecked(false);
+      const users = loadUsers();
+      const available = !users.some(u => u.username === form.username.trim());
+      setIdChecked(available);
+      if (!available) alert('이미 사용 중인 아이디(학번)입니다.');
+      else alert('사용 가능한 아이디(학번)입니다.');
     } finally {
       setChecking(false);
     }
@@ -43,12 +51,39 @@ export default function Signup() {
 
   const canNext = requiredOk && idChecked && agree; // 동의까지 포함
 
+  // ✅ 백엔드 없이 로컬 회원가입 + 자동 로그인
   const handleNext = () => {
     if (!canNext) return;
-    alert('회원가입이 완료되었습니다');
-    navigate('/');   // 완료 후 메인으로 이동
-  };
 
+    const users = loadUsers();
+    // 안전망: 혹시 중복확인 이후에 누군가 추가됐을 수 있으니 다시 한 번 체크
+    if (users.some(u => u.username === form.username.trim())) {
+      alert('이미 사용 중인 아이디(학번)입니다. 다시 확인해주세요.');
+      setIdChecked(false);
+      return;
+    }
+
+    // 저장 (⚠️ 비밀번호 평문 저장: 개발/디자인 확인용 전용)
+    const userToSave = {
+      username: form.username.trim(),
+      password: form.password,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      dept: form.dept,
+      phone: form.phone.trim(),
+      account: form.account.trim(),
+      birth: form.birth || '',
+    };
+    users.push(userToSave);
+    saveUsers(users);
+
+    // 자동 로그인용 안전 객체
+    const { password, ...safeUser } = userToSave;
+    login(`dev-${Date.now()}`, safeUser);
+
+    alert('회원가입이 완료되었습니다');
+    navigate('/');   // 완료 후 메인으로 이동 (원하면 '/mypage'로)
+  };
 
   return (
     <main className="SignupWrap">
@@ -165,6 +200,10 @@ export default function Signup() {
 
         <label className="Label">환급계좌</label>
         <input className="Input" name="account" value={form.account} onChange={onChange} placeholder="은행명+계좌번호" />
+
+        {/* (선택) 생년월일 */}
+        {/* <label className="Label">생년월일</label>
+        <input className="Input" name="birth" value={form.birth} onChange={onChange} placeholder="YYYY-MM-DD" /> */}
 
         {/* 약관 동의 */}
         <div className="AgreeRow">
