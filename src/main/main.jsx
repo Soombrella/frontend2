@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import './main.css';     // 메인 전용 스타일
+import './main.css';
 import { useState } from 'react';
 import NoticeModal from '../components/NoticeModal';
-import PriceTable from './PriceTable';  // ← 새로 만든 표 컴포넌트
+import PriceTable from './PriceTable';
 import BottomTab from '../components/BottomTab';
 import TermsModal from "../legal/TermsModal";
 import PrivacyModal from "../legal/PrivacyModal";
@@ -33,7 +33,7 @@ export default function Main() {
           반납 기한 | 대여일 포함 3일 이내
         </p>
 
-        {/* 요금표 이미지 자리 → 실제 표로 교체 */}
+        {/* 요금표 이미지 */}
         <PriceTable />
       </section>
 

@@ -12,14 +12,13 @@
 }
 .Brand{margin:0;font-size:18px}
 .LoginBtn{background:#111;color:#fff;border:none;border-radius:18px;padding:6px 12px;font-size:12px;cursor:pointer}
-/* 로그인 링크 밑줄 제거 */
+
 .LoginBtn,
 .LoginBtn:hover,
 .LoginBtn:focus,
 .LoginBtn:active {
   text-decoration: none;
 }
-
 
 /* 안내/요금표 */
 .Notice{background:#f5f7fb;border-radius:12px;padding:14px;font-size:13px;line-height:1.5;box-shadow:inset 0 0 0 1px #e8ecf5}
@@ -44,7 +43,7 @@
 .FlatBtn{flex:1;text-align:center;text-decoration:none;color:#111;border:1px solid #e5e7eb;border-radius:12px;padding:12px 0;background:#fff}
 
 .Notice { 
-  text-align: center;             /* 추가 */
+  text-align: center;
 }
 
 /* --- 요금표 컨테이너 --- */
@@ -55,19 +54,18 @@
   background:#fff; border:1px solid #eef1f6; border-radius:12px;
   padding:12px; box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
-/* 기존 .Photo는 안 쓰면 지워도 OK */
+/* 기존 .Photo는 안 쓰면 지워도 됨 */
 .PhotoImg{
   width: 100%;
-  height: 86px;          /* 카드 높이에 맞춤 */
-  object-fit: contain;   /* 잘리지 않고 안쪽에 맞게 */
+  height: 86px;
+  object-fit: contain;
   border: 1px dashed #d1d5db;
   border-radius: 10px;
   display: block;
-  color: #9aa3b2;        /* 이미지 로딩 실패 시 대체색 */
-  background: #fafafa;   /* 살짝 배경 */
+  color: #9aa3b2;
+  background: #fafafa;
   margin-bottom: 10px;
 }
-
 
 /* 머리표시 */
 .Pill{ display:block; width:max-content; margin:0 auto 10px; padding:8px 16px;
@@ -75,11 +73,11 @@
 .pill-yellow{ background:#fff7c2; }
 .pill-blue{ background:#e5f2ff; }
 
-/* 표: 폭 균등 + 가운데 정렬 */
+/* 표 */
 .Table{
   width:100%;
   border-collapse:collapse;
-  table-layout:fixed;            /* 열 폭 균등 */
+  table-layout:fixed;
   background:#fff;
   font-size:13px;
 }
@@ -89,15 +87,15 @@
   text-align:center;
   vertical-align:middle;
   border:1px solid #e5e7eb;
-  word-break:keep-all;           /* 한국어 줄바꿈 깔끔 */
+  word-break:keep-all;
   line-height:1.4;
 }
 .Table thead th{ background:#f8fafc; font-weight:700; }
 
-/* 안내문: 두 줄 시작선 통일 */
+/* 안내문 */
 .Notes{
   margin-top:8px;
-  padding:0 14px;                /* 표 안쪽과 시각적으로 맞춤 */
+  padding:0 14px;
 }
 .Note{
   margin:6px 0 0;
@@ -113,21 +111,20 @@
 }
 
 .CTA{
-  display:block;               /* 가로 100% 차지 */
+  display:block;
   width:100%;
-  box-sizing:border-box;       /* 패딩 포함 폭 계산 */
+  box-sizing:border-box;
   padding:14px 12px;
   border-radius:12px;
   background:#dbe9ff;
-  border:1px solid #dbe9ff;    /* 테두리도 배경과 동일하게 */
+  border:1px solid #dbe9ff;
   color:#0f1d40;
   text-align:center;
   text-decoration:none;
-  font: inherit;               /* 버튼 기본 폰트 무시하고 상위 폰트 사용 */
+  font: inherit;
   font-weight:700;
   cursor:pointer;
 
-  /* 브라우저 기본 버튼 외형 제거 */
   appearance:none;
   -webkit-appearance:none;
   outline:none;
@@ -139,13 +136,13 @@
 /* 약관/정책 작은 링크 */
 .LegalLinks{
   width: 100%;
-  display: flex;                 /* ← 가운데 정렬 확실하게 */
+  display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;                      /* | 양옆 간격 */
+  gap: 8px;
   font-size: 12.5px;
   color: #7a8699;
-  margin: 10px 0 8px;            /* ↓ 하단 여백 확 줄임 */
+  margin: 10px 0 8px;
 }
 .linklike { background:none; border:none; padding:0; margin:0;
   color:inherit; font:inherit; cursor:pointer; }

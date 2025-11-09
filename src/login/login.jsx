@@ -8,7 +8,7 @@ export default function Login() {
     <main className="LoginWrap">
       <button
         className="BackBtn"
-        onClick={() => navigate(-1)}   // ← history.back() 대신
+        onClick={() => navigate(-1)}
         aria-label="뒤로가기"
       >
         ←

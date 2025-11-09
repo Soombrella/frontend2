@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "./NoticeModal.css"; // 기존 모달 CSS 재사용
+import "./NoticeModal.css";
 
 export default function Modal({ open, onClose, title, children }) {
   useEffect(() => {

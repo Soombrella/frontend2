@@ -11,20 +11,16 @@ export default function Signup() {
   });
   const [idChecked, setIdChecked] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [agree, setAgree] = useState(false); // 약관 동의
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-    if (name === 'username') {
-      // 아이디가 바뀌면 '중복확인 완료' 상태 해제
-      setIdChecked(false);
-    }
+    if (name === 'username') setIdChecked(false);
   };
 
   const checkId = async () => {
-    // 입력 비었을 때는 메시지 없이 조용히 종료
     if (!form.username.trim()) return;
-
     setChecking(true);
     try {
       const res = await fetch(`/api/users/check-id?username=${encodeURIComponent(form.username)}`);
@@ -37,25 +33,18 @@ export default function Signup() {
     }
   };
 
-  // 이메일 = 필수 + 형식검사
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
   const isPwValid = /[A-Za-z]/.test(form.password) && /\d/.test(form.password) && form.password.length >= 8;
 
   const requiredOk = Boolean(
     form.name && form.dept && form.username && form.phone &&
-    form.password && form.email && form.account &&
-    isPwValid && isEmailValid);
+    form.password && form.email && form.account && isPwValid && isEmailValid
+  );
 
-  
-  const [agree, setAgree] = useState(false);
-
-// 변경
-  const canNext = requiredOk && idChecked && agree;
-
+  const canNext = requiredOk && idChecked && agree; // 동의까지 포함
 
   return (
     <main className="SignupWrap">
-      {/* 헤더 */}
       <header className="SignupHeader">
         <div className="HeaderLeft">
           <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
@@ -71,14 +60,13 @@ export default function Signup() {
         </button>
       </header>
 
-      {/* 폼 */}
       <form className="Form" onSubmit={(e)=>e.preventDefault()}>
         <label className="Label">이름</label>
         <input className="Input" name="name" value={form.name} onChange={onChange} />
 
         <label className="Label">학과</label>
         <div className="SelectWrap">
-          <select className="Select">
+          <select className="Select" name="dept" value={form.dept} onChange={onChange}>
             <option value="">학과 선택</option>
             <option>한국어문학부</option>
             <option>역사문화학과</option>
@@ -182,9 +170,7 @@ export default function Signup() {
             />
             <span>약관동의</span>
           </label>
-        {/* (선택) 약관 보기 링크가 필요하면 여기에 버튼/링크 추가 */}
         </div>
-
       </form>
     </main>
   );
