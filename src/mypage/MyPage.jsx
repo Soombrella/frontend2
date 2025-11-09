@@ -59,9 +59,6 @@ export default function MyPage() {
           </select>
           <span className="Chevron">▾</span>
         </div>
-
-        <label className="Label">생년월일</label>
-        <input className="Input" value={v(user?.birth)} readOnly placeholder="" />
       </section>
 
       {/* 액션 버튼 */}
