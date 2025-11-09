@@ -45,7 +45,13 @@ export default function Signup() {
     form.name && form.dept && form.username && form.phone &&
     form.password && form.email && form.account &&
     isPwValid && isEmailValid);
-  const canNext = requiredOk && idChecked;
+
+  
+  const [agree, setAgree] = useState(false);
+
+// 변경
+  const canNext = requiredOk && idChecked && agree;
+
 
   return (
     <main className="SignupWrap">
@@ -138,7 +144,6 @@ export default function Signup() {
             {checking ? '확인중…' : '중복확인'}
           </button>
         </div>
-        {/* 아이디 안내 메시지 제거 */}
 
         <label className="Label">전화번호</label>
         <input className="Input" name="phone" value={form.phone} onChange={onChange} placeholder="010-0000-0000" />
@@ -152,7 +157,6 @@ export default function Signup() {
           onChange={onChange}
           placeholder="8자리 이상, 영문+숫자"
         />
-        {/* 비밀번호 안내 메시지 표시 안 함 (원하면 다시 넣기 가능) */}
 
         <label className="Label">이메일</label>
         <input
@@ -163,10 +167,24 @@ export default function Signup() {
           onChange={onChange}
           placeholder="example@sookmyung.ac.kr"
         />
-        {/* 이메일 안내 메시지 제거 */}
 
         <label className="Label">환급계좌</label>
         <input className="Input" name="account" value={form.account} onChange={onChange} placeholder="은행명+계좌번호" />
+
+        {/* 약관 동의 */}
+        <div className="AgreeRow">
+          <label className="CheckLabel">
+            <input
+              type="checkbox"
+              className="CheckBox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+            />
+            <span>약관동의</span>
+          </label>
+        {/* (선택) 약관 보기 링크가 필요하면 여기에 버튼/링크 추가 */}
+        </div>
+
       </form>
     </main>
   );
