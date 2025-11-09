@@ -36,12 +36,12 @@
 .modal-body {
   color: #0f1d40;
   line-height: 1.7;
-  text-align: left;       /* ← 왼쪽 정렬 */
+  text-align: left;
   font-size: 14px;
 }
 
 .modal-body p {
-  margin: 10px 0 12px;    /* 문단 간격 */
+  margin: 10px 0 12px;
 }
 
 .bullet {
@@ -60,7 +60,7 @@
 
 .accent.strong {
   font-weight: 800;
-  text-align: center;      /* 강조 문단만 중앙 */
+  text-align: center;
   margin-bottom: 14px;
 }
 

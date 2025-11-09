@@ -25,7 +25,7 @@ const UmbrellaRent = () => {
   const dueDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
-    d.setHours(16, 30, 0, 0); // 16:30
+    d.setHours(16, 30, 0, 0);
     return d;
   }, []);
 

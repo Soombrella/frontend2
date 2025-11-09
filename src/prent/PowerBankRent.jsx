@@ -10,8 +10,8 @@ const PowerBankRent = () => {
 
   const [visitDate, setVisitDate] = useState(null);
   const [returnDate, setReturnDate] = useState(null);
-  const [isProxyReturn, setIsProxyReturn] = useState(null); // 대리 반납
-  const [hasCable, setHasCable] = useState(null);            // 케이블 여부
+  const [isProxyReturn, setIsProxyReturn] = useState(null);
+  const [hasCable, setHasCable] = useState(null);
   const [showProcedureModal, setShowProcedureModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
@@ -24,7 +24,7 @@ const PowerBankRent = () => {
   const dueDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
-    d.setHours(16, 30, 0, 0); // 16:30 마감
+    d.setHours(16, 30, 0, 0);
     return d;
   }, []);
 
