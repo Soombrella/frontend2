@@ -1,3 +1,4 @@
+// src/signup/Signup.jsx
 import './signup.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -10,22 +11,20 @@ export default function Signup() {
   });
   const [idChecked, setIdChecked] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [agree, setAgree] = useState(false); // 약관 동의
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-    if (name === 'username') {
-      setIdChecked(false);
-    }
+    if (name === 'username') setIdChecked(false);
   };
 
   const checkId = async () => {
     if (!form.username.trim()) return;
-
     setChecking(true);
     try {
       const res = await fetch(`/api/users/check-id?username=${encodeURIComponent(form.username)}`);
-      const data = await res.json();
+      const data = await res.json();   // { available: boolean }
       setIdChecked(Boolean(data.available));
     } catch {
       setIdChecked(false);
@@ -39,13 +38,20 @@ export default function Signup() {
 
   const requiredOk = Boolean(
     form.name && form.dept && form.username && form.phone &&
-    form.password && form.email && form.account &&
-    isPwValid && isEmailValid);
-  const canNext = requiredOk && idChecked;
+    form.password && form.email && form.account && isPwValid && isEmailValid
+  );
+
+  const canNext = requiredOk && idChecked && agree; // 동의까지 포함
+
+  const handleNext = () => {
+    if (!canNext) return;
+    alert('회원가입이 완료되었습니다');
+    navigate('/');   // 완료 후 메인으로 이동
+  };
+
 
   return (
     <main className="SignupWrap">
-      {/* 헤더 */}
       <header className="SignupHeader">
         <div className="HeaderLeft">
           <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
@@ -55,20 +61,19 @@ export default function Signup() {
           className="NextBtn"
           type="button"
           disabled={!canNext}
-          onClick={() => canNext && navigate('/')}
+          onClick={handleNext}
         >
           다음으로
         </button>
       </header>
 
-      {/* 폼 */}
       <form className="Form" onSubmit={(e)=>e.preventDefault()}>
         <label className="Label">이름</label>
         <input className="Input" name="name" value={form.name} onChange={onChange} />
 
         <label className="Label">학과</label>
         <div className="SelectWrap">
-          <select className="Select">
+          <select className="Select" name="dept" value={form.dept} onChange={onChange}>
             <option value="">학과 선택</option>
             <option>한국어문학부</option>
             <option>역사문화학과</option>
@@ -134,7 +139,6 @@ export default function Signup() {
             {checking ? '확인중…' : '중복확인'}
           </button>
         </div>
-        {/* 아이디 안내 메시지 제거 */}
 
         <label className="Label">전화번호</label>
         <input className="Input" name="phone" value={form.phone} onChange={onChange} placeholder="010-0000-0000" />
@@ -148,7 +152,6 @@ export default function Signup() {
           onChange={onChange}
           placeholder="8자리 이상, 영문+숫자"
         />
-        {/* 비밀번호 안내 메시지 표시 안 함 */}
 
         <label className="Label">이메일</label>
         <input
@@ -159,10 +162,22 @@ export default function Signup() {
           onChange={onChange}
           placeholder="example@sookmyung.ac.kr"
         />
-        {/* 이메일 안내 메시지 제거 */}
 
         <label className="Label">환급계좌</label>
         <input className="Input" name="account" value={form.account} onChange={onChange} placeholder="은행명+계좌번호" />
+
+        {/* 약관 동의 */}
+        <div className="AgreeRow">
+          <label className="CheckLabel">
+            <input
+              type="checkbox"
+              className="CheckBox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+            />
+            <span>약관동의</span>
+          </label>
+        </div>
       </form>
     </main>
   );

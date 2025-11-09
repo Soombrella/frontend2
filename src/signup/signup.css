@@ -57,3 +57,33 @@
 .Form p {
   margin-top:4px;
 }
+
+/* 체크박스 영역 */
+.AgreeRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:2px;
+}
+
+/* 라벨 전체 클릭 가능 */
+.CheckLabel{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+/* ✅ 보라색 체크 스타일 (현대 브라우저) */
+.CheckBox{
+  width:18px;
+  height:18px;
+  accent-color:#6d28d9;  /* 보라색 */
+}
+
+/* 다음 버튼 비활성화 시 느낌 살리기 */
+.NextBtn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
