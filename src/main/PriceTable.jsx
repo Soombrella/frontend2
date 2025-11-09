@@ -1,6 +1,7 @@
 export default function PriceTable() {
   return (
     <section className="PriceTable">
+
       {/* 우산 */}
       <div className="TableCard">
         <div className="Pill pill-yellow">우산</div>
@@ -47,7 +48,7 @@ export default function PriceTable() {
         </table>
       </div>
 
-      {/* 안내문 - 두 문단을 같은 들여쓰기 박스(Notes)로 감쌈 */}
+      {/* 안내문 */}
       <div className="Notes">
         <p className="Note">
           - 케이블은 보조배터리와 <b>함께 반납</b>해야 하며, 반납 시 <b>2,000원 환급</b>됩니다.

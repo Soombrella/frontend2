@@ -5,7 +5,7 @@ export default function BottomTab() {
   return (
     <nav className="bottom-tab">
       <NavLink to="/" className={({ isActive }) => "tab-item" + (isActive ? " active" : "")}>
-        {/* 홈 아이콘 (SVG) */}
+        {/* 홈 아이콘 */}
         <svg viewBox="0 0 24 24" className="tab-icon" aria-hidden="true">
           <path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 19.5v-9z" fill="currentColor"/>
         </svg>

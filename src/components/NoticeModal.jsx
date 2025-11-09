@@ -1,9 +1,8 @@
-// src/components/NoticeModal.jsx
-import React, { useEffect } from "react";   // ← React도 임포트
+import React, { useEffect } from "react";
 import "./NoticeModal.css";
 
 export default function NoticeModal({ open, onClose }) {
-  // ESC 로 닫기 (훅은 항상 호출)
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {

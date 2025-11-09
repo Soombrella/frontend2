@@ -1,4 +1,3 @@
-// src/signup/Signup.jsx
 import './signup.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -16,19 +15,17 @@ export default function Signup() {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     if (name === 'username') {
-      // 아이디가 바뀌면 '중복확인 완료' 상태 해제
       setIdChecked(false);
     }
   };
 
   const checkId = async () => {
-    // 입력 비었을 때는 메시지 없이 조용히 종료
     if (!form.username.trim()) return;
 
     setChecking(true);
     try {
       const res = await fetch(`/api/users/check-id?username=${encodeURIComponent(form.username)}`);
-      const data = await res.json();   // { available: boolean }
+      const data = await res.json();
       setIdChecked(Boolean(data.available));
     } catch {
       setIdChecked(false);
@@ -37,7 +34,6 @@ export default function Signup() {
     }
   };
 
-  // 이메일 = 필수 + 형식검사
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
   const isPwValid = /[A-Za-z]/.test(form.password) && /\d/.test(form.password) && form.password.length >= 8;
 
@@ -152,7 +148,7 @@ export default function Signup() {
           onChange={onChange}
           placeholder="8자리 이상, 영문+숫자"
         />
-        {/* 비밀번호 안내 메시지 표시 안 함 (원하면 다시 넣기 가능) */}
+        {/* 비밀번호 안내 메시지 표시 안 함 */}
 
         <label className="Label">이메일</label>
         <input
