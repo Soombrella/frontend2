@@ -43,6 +43,13 @@ export default function Signup() {
 
   const canNext = requiredOk && idChecked && agree; // 동의까지 포함
 
+  const handleNext = () => {
+    if (!canNext) return;
+    alert('회원가입이 완료되었습니다');
+    navigate('/');   // 완료 후 메인으로 이동
+  };
+
+
   return (
     <main className="SignupWrap">
       <header className="SignupHeader">
@@ -54,7 +61,7 @@ export default function Signup() {
           className="NextBtn"
           type="button"
           disabled={!canNext}
-          onClick={() => canNext && navigate('/')}
+          onClick={handleNext}
         >
           다음으로
         </button>
