@@ -1,13 +1,47 @@
+/* =========================
+   Global Styles (index.css)
+   ========================= */
+
+/* Font & smoothing */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Noto Sans KR', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* 레이아웃 시프트 방지(스크롤바 유무로 흔들림 방지) */
+  scrollbar-gutter: stable both-edges;
+  /* 데스크톱에서 항상 세로 스크롤 컨텍스트 확보 (선택)
+     필요 시 주석 해제
+  */
+  /* overflow-y: scroll; */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* 이미지 드래그 방지(모바일) */
+img {
+  -webkit-user-drag: none;
+}
+
+/* 링크 기본 색상 상속 (앱 전체 톤 유지) */
+a {
+  color: inherit;
+}
+
+/* iOS 100vh 이슈 대응: 최신 dvh 사용 권장 */
+:root {
+  /* 앱 공통 변수 예: 페이지/탭 폭과 탭 높이 */
+  --app-width: 420px;
+  --tab-height: 64px;
+}
+
+/* 시스템 다크모드 대비(선택) */
+@media (prefers-color-scheme: dark) {
+  /* 다크모드 기본값은 유지. 필요 시 토큰만 수정 */
 }

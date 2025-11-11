@@ -1,22 +1,22 @@
+// src/mypage/MyPageGuide.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import SimpleModal from "../components/SimpleModal";
+import { useNavigate, Link } from "react-router-dom";
 import "./mypage.css";
+import SimpleModal from "../components/SimpleModal";
+import BottomTab from "../components/BottomTab";
+import "../components/BottomTab.css";
 import { useAuth } from "../auth/AuthContext";
-import { Link } from 'react-router-dom';
-import BottomTab from '../components/BottomTab';
-import '../components/BottomTab.css';
-
 
 export default function MyPageGuide() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth() ?? {};
-  const [modal, setModal] = useState({ open: false, title: "" });
+  const { user } = useAuth() ?? {};
+  const [modal, setModal] = useState({ open: false, title: "", body: "" });
 
-  const open = (title) => setModal({ open: true, title });
-  const close = () => setModal({ open: false, title: "" });
+  const v = (x) => (x ? x : "");
 
-  const v = (x) => x || "";
+  const open = (title, body = "추후 추가 예정") =>
+    setModal({ open: true, title, body });
+  const close = () => setModal({ open: false, title: "", body: "" });
 
   return (
     <main className="MyPageWrap">
@@ -31,7 +31,9 @@ export default function MyPageGuide() {
       <section className="ProfileCard">
         <div className="Avatar" aria-hidden>👤</div>
         <div className="Who">
-          <div className="Nick">{v(user?.name)}{user?.username ? ` (${user.username})` : ""}</div>
+          <div className="Nick">
+            {v(user?.name)}{user?.username ? ` (${user.username})` : ""}
+          </div>
           <div className="Meta">{v(user?.dept)}</div>
         </div>
       </section>
@@ -45,28 +47,28 @@ export default function MyPageGuide() {
 
       {/* 안내 리스트 */}
       <section className="Card gap-10">
-        <button className="ListBtn" onClick={() => open("반납 관련 안내사항")}>반납 관련 안내사항</button>
-        <button className="ListBtn" onClick={() => open("개인정보 처리방침")}>개인정보 처리방침</button>
-        <button className="ListBtn" onClick={() => open("서비스 이용 약관")}>서비스 이용 약관</button>
+        <button className="ListBtn" onClick={() => open("반납 관련 안내사항")}>
+          반납 관련 안내사항
+        </button>
+        <button className="ListBtn" onClick={() => open("개인정보 처리방침")}>
+          개인정보 처리방침
+        </button>
+        <button className="ListBtn" onClick={() => open("서비스 이용 약관")}>
+          서비스 이용 약관
+        </button>
       </section>
 
       {/* 모달 */}
-      <SimpleModal open={modal.open} title={modal.title} onClose={close}>
-        <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>추후 추가 예정</p>
+      <SimpleModal
+        open={modal.open}
+        title={modal.title}
+        onClose={close}
+      >
+        <p style={{ whiteSpace: "pre-line", lineHeight: 1.6 }}>
+          {modal.body}
+        </p>
       </SimpleModal>
 
-      {/* 하단 액션 (선택) */}
-      <div className="Actions">
-        <button
-            className="Btn ghost"
-            onClick={() => { logout(); navigate("/"); }}
-        >
-        로그아웃
-        </button>
-        <button className="Btn primary" onClick={() => alert("준비 중입니다")}>
-        회원탈퇴
-        </button>
-      </div>
       <BottomTab />
     </main>
   );
