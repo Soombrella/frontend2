@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import BottomTab from '../components/BottomTab';
 import { Link } from 'react-router-dom';
-
+import '../components/BottomTab.css';
 
 export default function MyPage() {
   const navigate = useNavigate();

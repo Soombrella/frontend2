@@ -4,6 +4,8 @@ import { useAuth } from "../auth/AuthContext";
 import SimpleModal from "../components/SimpleModal";
 import "./mypage.css";
 import { Link } from 'react-router-dom';
+import BottomTab from '../components/BottomTab';
+import '../components/BottomTab.css';
 
 
 // ✅ 임시 데이터 로딩 (나중에 API로 교체)
@@ -212,6 +214,7 @@ export default function MyPageRents() {
       >
         <p style={{lineHeight:1.6}}>{info.text}</p>
       </SimpleModal>
+      <BottomTab />
     </main>
   );
 }
