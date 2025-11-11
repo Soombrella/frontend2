@@ -45,3 +45,10 @@ a {
 @media (prefers-color-scheme: dark) {
   /* 다크모드 기본값은 유지. 필요 시 토큰만 수정 */
 }
+
+html{
+  scrollbar-gutter: stable both-edges;
+}
+html, body{
+  overflow-y: auto;  /* (혹은 body { overflow-y: scroll; }도 가능) */
+}
