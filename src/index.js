@@ -10,10 +10,12 @@ import Login from './login/login.jsx';
 import UmbrellaRent from './urent/UmbrellaRent.jsx';
 import Signup from './signup/Signup.jsx';
 import PowerBankRent from './prent/PowerBankRent.jsx';
-import AdminLayout from './admin/AdminLayout';
 import { AuthProvider } from './auth/AuthContext';
 import ProtectedRoute from './auth/ProtectedRoute';
-import MyPage from './mypage/MyPage.jsx'; // 마이페이지 컴포넌트
+import MyPage from './mypage/MyPage.jsx';
+import Home from './admin/Home.jsx';
+import Stock from './admin/Stock.jsx';
+import Profile from './admin/Profile.jsx';
 import MyPageGuide from './mypage/MyPageGuide.jsx';
 import MyPageRents from './mypage/MyPageRents.jsx';
 import MyPageRentDetail from './mypage/MyPageRentDetail.jsx';
@@ -37,15 +39,9 @@ root.render(
             </ProtectedRoute>
           }
         />
-        <Route
-        path="/mypage/guide"
-        element={
-          <ProtectedRoute>
-            <MyPageGuide />
-          </ProtectedRoute>
-          }
-        />
-          <Route path="/admin/*" element={<AdminLayout />}/> {/* 관리자 */}
+          <Route path="/admin" element={<Home />} />
+          <Route path="/admin/stock" element={<Stock />} />
+          <Route path="/admin/profile" element={<Profile />} />
           <Route path="*" element={<h1>404</h1>} />
           <Route
             path="/mypage/rents"
