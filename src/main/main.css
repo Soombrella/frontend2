@@ -156,3 +156,17 @@
 }
 .LegalLinks a:hover{ text-decoration: underline; }
 .LegalLinks .sep{ opacity: .6; }
+
+/* 메인/마이페이지 컨테이너 공통 여백과 최소 높이 통일 */
+.Main,
+.MyPageWrap {
+  max-width: 420px;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  /* 하단 고정 탭 높이만큼 패딩 (56px 가정) + 안전 영역 */
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+
+  /* 화면 꽉 채워 보이도록 */
+  min-height: 100dvh;
+}

@@ -1,4 +1,12 @@
-.MyPageWrap{max-width:420px;margin:0 auto;padding:16px 16px 80px;font-family:system-ui,-apple-system,'Noto Sans KR',Arial}
+/* 혹시 MyPageWrap에 패딩이 제각각이면 통일 */
+.MyPageWrap {
+  padding: 12px 16px 24px;
+  /* 아래 줄이 없으면 꼭 추가 */
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
 .MPHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .BackBtn{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer}
 .MPTitle{margin:0;font-size:18px;font-weight:700}

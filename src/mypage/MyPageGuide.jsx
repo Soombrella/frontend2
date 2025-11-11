@@ -4,6 +4,8 @@ import SimpleModal from "../components/SimpleModal";
 import "./mypage.css";
 import { useAuth } from "../auth/AuthContext";
 import { Link } from 'react-router-dom';
+import BottomTab from '../components/BottomTab';
+import '../components/BottomTab.css';
 
 
 export default function MyPageGuide() {
@@ -65,6 +67,7 @@ export default function MyPageGuide() {
         회원탈퇴
         </button>
       </div>
+      <BottomTab />
     </main>
   );
 }
