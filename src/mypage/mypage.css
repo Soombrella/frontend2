@@ -30,3 +30,97 @@
 .Btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
 .Btn.primary{background:#111;color:#fff}
 .Btn.ghost{background:#fff;border:1px solid #e5e7eb}
+
+/* --- Modal --- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:flex; align-items:center; justify-content:center; z-index:1000;
+}
+.modal-sheet{
+  width:min(90%, 420px); background:#fff; border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2); overflow:hidden;
+}
+.modal-header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid #eee; }
+.modal-title{ margin:0; font-size:16px; font-weight:700; }
+.modal-close{ background:none; border:0; font-size:18px; cursor:pointer; }
+.modal-body{ padding:16px 14px; font-size:14px; color:#222; min-height:100px; }
+.modal-footer{ padding:12px 14px; border-top:1px solid #eee; display:flex; justify-content:flex-end; }
+.modal-ok{ background:#111; color:#fff; border:0; border-radius:10px; padding:8px 14px; cursor:pointer; }
+
+/* 안내 리스트 버튼 */
+.ListBtn{
+  width:100%; text-align:left; padding:12px; border:0; border-radius:10px;
+  background:#f2f4f7; font:inherit; color:#111; cursor:pointer;font-size:14px
+}
+.Card.gap-10 { display:grid; gap:10px; }
+
+/* 카드 그리드 */
+.Card.grid-12{ display:grid; grid-template-columns:1fr; gap:12px; padding:0 16px; }
+@media (min-width:420px){ .Card.grid-12{ grid-template-columns:1fr 1fr; } }
+
+.RentCard{ background:#fff; border:1px solid #eee; border-radius:14px; padding:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.RentCard.empty{ opacity:.6; }
+.RentThumb{ position:relative; height:120px; background:#f2f4f7; border-radius:10px; margin-bottom:10px; }
+.StateBadge{
+  position:absolute; right:8px; top:8px;
+  padding:6px 8px; border-radius:8px; font-size:12px; font-weight:700; color:#111; background:#e5f2ff;
+}
+.badge-blue{ background:#dbeafe; }   /* 대여중 */
+.badge-gray{ background:#e5e7eb; }   /* 반납완료 */
+.badge-red{ background:#fee2e2; }    /* 연체중 */
+.badge-green{ background:#dcfce7; }  /* 예약중 */
+
+.RentTitle{ font-weight:700; margin-bottom:6px; }
+.RentHint{ font-size:12px; color:#6b7280; }
+
+/* 상세 */
+.Card.detail{ padding:16px; }
+.DetailThumb{ height:160px; background:#f2f4f7; border-radius:12px; margin:0 16px 14px; }
+.DetailList{ display:grid; gap:10px; padding:0 16px 16px; }
+.DetailRow{ display:grid; grid-template-columns:110px 1fr; gap:10px; background:#f8fafc; border-radius:10px; padding:10px; }
+.DetailRow .Key{ color:#6b7280; font-size:13px; }
+.DetailRow .Val{ font-weight:600; }
+
+/* D-Day 작은 배지: 카드 썸네일 우하단 */
+.DueBadge{
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 4px 6px;     /* 세로 폭 얇게 */
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 6px;
+  background: #eceff3;
+  color: #111;
+  font-weight: 700;
+}
+
+/* 제목-버튼 한 줄 */
+.TitleRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:6px;   /* 썸네일과 살짝 간격 */
+}
+
+/* 신청 취소 버튼: 더 얇고 타이틀 라인에 맞춤 */
+.CancelBtn{
+  padding: 5px 10px;   /* 세로 얇게 */
+  line-height: 1;
+  margin: 0;           /* 위로 딱 붙게 */
+  background:#111;
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.MPBrandLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.MPBrandLink:visited { color: inherit; }
+
+
