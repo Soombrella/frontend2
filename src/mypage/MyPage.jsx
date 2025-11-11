@@ -3,6 +3,8 @@ import './mypage.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import BottomTab from '../components/BottomTab';
+import { Link } from 'react-router-dom';
+import '../components/BottomTab.css';
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ export default function MyPage() {
       {/* 헤더 */}
       <header className="MPHeader">
         <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
-        <h1 className="MPTitle">SoomBrella</h1>
+        <Link to="/" className="MPTitle MPBrandLink">SoomBrella</Link>
         <div style={{ width: 24 }} /> {/* 우측 공간 맞춤 */}
       </header>
 

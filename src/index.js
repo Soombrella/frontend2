@@ -16,6 +16,9 @@ import MyPage from './mypage/MyPage.jsx';
 import Home from './admin/Home.jsx';
 import Stock from './admin/Stock.jsx';
 import Profile from './admin/Profile.jsx';
+import MyPageGuide from './mypage/MyPageGuide.jsx';
+import MyPageRents from './mypage/MyPageRents.jsx';
+import MyPageRentDetail from './mypage/MyPageRentDetail.jsx';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -40,6 +43,14 @@ root.render(
           <Route path="/admin/stock" element={<Stock />} />
           <Route path="/admin/profile" element={<Profile />} />
           <Route path="*" element={<h1>404</h1>} />
+          <Route
+            path="/mypage/rents"
+            element={<ProtectedRoute><MyPageRents /></ProtectedRoute>}
+          />
+          <Route
+            path="/mypage/rents/:id"
+            element={<ProtectedRoute><MyPageRentDetail /></ProtectedRoute>}
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
