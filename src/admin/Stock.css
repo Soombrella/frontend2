@@ -1,0 +1,115 @@
+.stock-page {
+  min-height: 100dvh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 */
+.stock-header {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px 8px;
+}
+.stock-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+.back-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: #f2f2f2;
+  cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+}
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.filter select {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+/* 표 */
+.table-wrap {
+  padding: 8px 20px 24px;
+}
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.stock-table th,
+.stock-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 14px;
+}
+.stock-table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+.stock-table .col-action {
+  width: 190px;
+}
+.stock-table .empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 28px 0;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+}
+
+/* 알약 배지 */
+.pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+/* 상태 색상 */
+.pill-green { background: #d1fae5; color: #065f46; border-color: #a7f3d0; } /* 사용가능 */
+.pill-blue  { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; } /* 대여중 */
+.pill-gray  { background: #e5e7eb; color: #374151; border-color: #d1d5db; } /* 반납완료 */
+.pill-red   { background: #fee2e2; color: #991b1b; border-color: #fecaca; } /* 분실 및 고장 */
+
+.changer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.changer select {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+.btn-outline {
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
