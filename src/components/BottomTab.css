@@ -1,20 +1,34 @@
+/* ================================
+   BottomTab Styles (BottomTab.css)
+   ================================ */
+
+:root{
+  --app-width: 420px;
+  --tab-height: 64px; /* keep in sync with page padding-bottom */
+}
+
+/* Fixed bottom navigation */
 .bottom-tab {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
   bottom: 0;
   width: 100%;
-  max-width: 420px;
-  height: 64px;
+  max-width: var(--app-width);
+  height: var(--tab-height);
   background: #ffffff;
   border-top: 1px solid #ececec;
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* 두 개일 때 */
   align-items: center;
   z-index: 1200;
+
+  /* iOS safe area */
   padding-bottom: max(0px, env(safe-area-inset-bottom));
 }
 
+/* Each tab item */
 .tab-item {
   text-decoration: none;
   color: #a1a7b0;
@@ -23,14 +37,41 @@
   align-items: center;
   gap: 6px;
   padding-top: 6px;
+
+  /* 큰 터치 영역 */
+  height: calc(var(--tab-height) - max(0px, env(safe-area-inset-bottom)));
+  justify-content: center;
 }
 
+/* Active state */
 .tab-item.active {
   color: #0b2d57;
   font-weight: 700;
 }
 
-.tab-icon { width: 24px; height: 24px; }
-.tab-label { font-size: 12px; }
-/* 버튼을 링크처럼 보이게 */
-.tab-button { background: none; border: 0; padding: 0; font: inherit; color: inherit; }
+/* Icon & label */
+.tab-icon { width: 24px; height: 24px; display: block; }
+.tab-label { font-size: 12px; line-height: 1; }
+
+/* Button reset to look like link */
+.tab-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Optional: prevent image dragging */
+.tab-item img, .tab-icon {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Shadow on iOS to separate from content (subtle) */
+@supports (backdrop-filter: blur(2px)) {
+  .bottom-tab {
+    backdrop-filter: saturate(120%) blur(2px);
+  }
+}
