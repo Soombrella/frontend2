@@ -19,6 +19,11 @@ import MyPageGuide from './mypage/MyPageGuide.jsx';
 import MyPageRents from './mypage/MyPageRents.jsx';
 import MyPageRentDetail from './mypage/MyPageRentDetail.jsx';
 
+import AdminHome from './admin/Home.jsx';
+import AdminStock from './admin/Stock.jsx';
+import AdminProfile from './admin/Profile.jsx';
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -65,6 +70,10 @@ root.render(
               </ProtectedRoute>
             }
           />
+
+          <Route path="/admin" element={<AdminHome />} />
+          <Route path="/admin/stock" element={<AdminStock />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
 
           {/* Fallback */}
           <Route path="*" element={<h1>404</h1>} />
