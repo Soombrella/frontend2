@@ -2,10 +2,6 @@ import React, { useMemo, useState } from "react";
 import "./Home.css";
 import AdminBottomTab from "./AdminBottomTab";
 
-/** ─────────────────────────────────────────────────
- *  (1) 상태 정의
- *     - 3개 큰 그룹(파랑/초록/빨강) 안에서 명도만 달라지는 배지
- * ───────────────────────────────────────────────── */
 export const STATUS_GROUPS = {
   // 파랑 (대여/결제 흐름)
   BLUE: ["입금대기", "입금완료", "대여중"],
@@ -32,7 +28,7 @@ const COARSE_STATUS_MAP = {
 /** 배지 색상 클래스 선택 */
 function badgeClassByStatus(status) {
   if (STATUS_GROUPS.BLUE.includes(status)) {
-    // 명도: 1(연한) ~ 3(진함) 순서 느낌으로 매핑
+
     if (status === "입금대기") return "pill pill-blue tone-1";
     if (status === "입금완료") return "pill pill-blue tone-2";
     return "pill pill-blue tone-3"; // 대여중

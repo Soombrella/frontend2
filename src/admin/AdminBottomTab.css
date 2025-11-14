@@ -1,0 +1,77 @@
+:root {
+  --app-width: 420px;
+  --tab-height: 64px;
+}
+
+/* ===== 관리자 푸터 공통 스타일 ===== */
+.AdminBottomTab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: var(--app-width);
+  height: var(--tab-height);
+  background: #ffffff;
+  border-top: 1px solid #ececec;
+
+  display: grid;
+  align-items: center;
+  z-index: 1200;
+
+  /* iOS safe area */
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+/* 탭 영역 */
+.AdminTabNav {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3개 */
+  height: calc(var(--tab-height) - max(0px, env(safe-area-inset-bottom)));
+}
+
+/* 개별 탭 */
+.AdminTabItem {
+  text-decoration: none;
+  color: #a1a7b0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 6px;
+  font-size: 12px;
+  height: 100%;
+}
+
+/* 아이콘 */
+.AdminTabItem .icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* 레이블 */
+.AdminTabItem .label {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* 활성 탭 */
+.AdminTabItem.active {
+  color: #0b2d57;
+  font-weight: 700;
+}
+
+/* iOS 배경 blur */
+@supports (backdrop-filter: blur(2px)) {
+  .AdminBottomTab {
+    backdrop-filter: saturate(120%) blur(2px);
+  }
+}
+
+/* 이미지나 아이콘 드래그 방지 */
+.AdminTabItem img,
+.AdminTabItem .icon {
+  -webkit-user-drag: none;
+  user-select: none;
+}
