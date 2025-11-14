@@ -119,8 +119,8 @@
 
 /* 신청 버튼 */
 .submit-btn {
-  align-self: center;
-  width: 88%;
+  display: block;
+  width: 100%;
   max-width: 360px;
   height: 46px;
   background: #000;
@@ -129,8 +129,7 @@
   border-radius: 22px;
   font-size: 15.5px;
   font-weight: 700;
-  margin-top: 10px;
-  margin-bottom: 24px;
+  margin: 28px auto 40px;
   cursor: pointer;
 }
 
