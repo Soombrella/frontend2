@@ -1,69 +1,77 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+// src/auth/AuthContext.jsx
+import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthCtx = createContext(null);
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);   // { username, name, email, dept, password? }
+  const [token, setToken] = useState(null); // 문자열
 
+  // 앱 처음 켤 때 localStorage에서 로그인 정보 복원
   useEffect(() => {
-    const t = localStorage.getItem('token');
-    const cachedUser = localStorage.getItem('user'); // 로컬 복구용
-    if (!t) { setLoading(false); return; }
-
-    // 1) 백엔드 없어도: 로컬에 저장된 user로 즉시 복구
-    if (cachedUser) {
+    const rawUser = localStorage.getItem("sb_user");
+    const rawToken = localStorage.getItem("sb_token");
+    if (rawUser && rawToken) {
       try {
-        setToken(t);
-        setUser(JSON.parse(cachedUser));
-        setLoading(false);
-        return; // 여기서 끝냄 → 서버 검증 안 함
+        setUser(JSON.parse(rawUser));
+        setToken(rawToken);
       } catch {
-        // 파싱 실패 시 서버 검증 시도
+        // 파싱 실패하면 싹 비움
+        localStorage.removeItem("sb_user");
+        localStorage.removeItem("sb_token");
       }
     }
-
-    // 2) 백엔드가 있을 때: 토큰으로 me 검증
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${t}` },
-        });
-        if (!res.ok) throw new Error('unauthorized');
-        const me = await res.json();
-        setToken(t);
-        setUser(me);
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setToken(null);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
   }, []);
 
-  const login = (t, me) => {
-    localStorage.setItem('token', t);
-    localStorage.setItem('user', JSON.stringify(me)); // 로컬에도 저장
-    setToken(t);
-    setUser(me);
+  // 로그인
+  const login = (token, user) => {
+    setToken(token);
+    setUser(user);
+    localStorage.setItem("sb_token", token);
+    localStorage.setItem("sb_user", JSON.stringify(user));
   };
 
+  // 로그아웃
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    localStorage.removeItem("sb_token");
+    localStorage.removeItem("sb_user");
+  };
+
+  // ✏️ 프로필 수정: email, dept 등 일부만 패치
+  const updateUser = (patch) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+
+      // 현재 로그인 사용자 정보 갱신
+      localStorage.setItem("sb_user", JSON.stringify(next));
+
+      // 회원 목록(sb_users)에도 반영
+      const listRaw = localStorage.getItem("sb_users");
+      if (listRaw && prev.username) {
+        try {
+          const list = JSON.parse(listRaw).map((u) =>
+            u.username === prev.username ? { ...u, ...patch } : u
+          );
+          localStorage.setItem("sb_users", JSON.stringify(list));
+        } catch {
+          // 목록이 깨져 있으면 그냥 무시
+        }
+      }
+
+      return next;
+    });
   };
 
   return (
-    <AuthCtx.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
       {children}
-    </AuthCtx.Provider>
+    </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthCtx);
+export function useAuth() {
+  return useContext(AuthContext);
+}
