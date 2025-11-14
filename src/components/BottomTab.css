@@ -29,7 +29,9 @@
 }
 
 /* Each tab item */
-.tab-item {
+.tab-item,
+.tab-item:link,
+.tab-item:visited {
   text-decoration: none;
   color: #a1a7b0;
   display: flex;
@@ -74,4 +76,16 @@
   .bottom-tab {
     backdrop-filter: saturate(120%) blur(2px);
   }
+}
+
+/* 🔒 하단 탭 색 강제 통일 */
+
+.bottom-tab .tab-item,
+.bottom-tab .tab-item:link,
+.bottom-tab .tab-item:visited {
+  color: #a1a7b0 !important;  /* 기본 회색 */
+}
+
+.bottom-tab .tab-item.active {
+  color: #0b2d57 !important;  /* 선택된 탭(홈 또는 마이페이지) 진한 남색 */
 }
