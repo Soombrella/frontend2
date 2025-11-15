@@ -22,12 +22,16 @@
 }
 
 .back-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  border: none;
-  background: #f2f2f2;
+  background: none;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 4px;
   cursor: pointer;
+  color: #151515;
+  border-radius: 0;
+  width: auto;
+  height: auto;
 }
 
 .filters {
