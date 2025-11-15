@@ -1,30 +1,53 @@
 // src/signup/Signup.jsx
-import './signup.css';
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { useAuth } from '../auth/AuthContext';
+import "./signup.css";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "../auth/AuthContext";
+
+// 🔹 환급계좌용 은행 목록 (여기 안에서 마음대로 수정해도 됨)
+const BANKS = [
+  "국민은행",
+  "신한은행",
+  "우리은행",
+  "하나은행",
+  "농협은행",
+  "카카오뱅크",
+  "토스뱅크",
+  "우체국",
+  "신협은행",
+  "IM뱅크",
+  "광주은행",
+  "부산은행",
+  "기업은행",
+  "케이뱅크",
+  "새마을금고",
+  "SC제일",
+  "경남은행", "수협", "제주은행"
+];
 
 // 로컬 저장 키
-const USERS_KEY = 'sb_users';
-const loadUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-const saveUsers = (arr) => localStorage.setItem(USERS_KEY, JSON.stringify(arr));
+const USERS_KEY = "sb_users";
+const loadUsers = () =>
+  JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+const saveUsers = (arr) =>
+  localStorage.setItem(USERS_KEY, JSON.stringify(arr));
 
 export default function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    name: '',
-    dept: '',
-    username: '',
-    phone: '',
-    password: '',
-    email: '',
-    account: '',
-    birth: '',
+    name: "",
+    dept: "",
+    username: "",
+    phone: "",
+    password: "",
+    email: "",
+    bank: "",          // ✅ 은행명
+    accountNumber: "", // ✅ 계좌번호
+    birth: "",
   });
 
-  // 중복확인 기능 제거 → 이 상태들도 삭제
   const [agree, setAgree] = useState(false); // 약관 동의
 
   const onChange = (e) => {
@@ -46,12 +69,12 @@ export default function Signup() {
       form.phone &&
       form.password &&
       form.email &&
-      form.account &&
+      form.bank &&           // ✅ 은행 선택했는지
+      form.accountNumber &&  // ✅ 계좌번호 입력했는지
       isPwValid &&
       isEmailValid
   );
 
-  // ✅ 중복확인 체크(idChecked) 제거 → 약관 동의만 포함
   const canNext = requiredOk && agree;
 
   // ✅ 백엔드 없이 로컬 회원가입 + 자동 로그인
@@ -60,13 +83,15 @@ export default function Signup() {
 
     const users = loadUsers();
 
-    // 안전망: 가입 직전에 한 번만 중복 체크
+    // 가입 직전에 한 번만 중복 체크
     if (users.some((u) => u.username === form.username.trim())) {
-      alert('이미 사용 중인 아이디(학번)입니다. 다시 확인해주세요.');
+      alert("이미 사용 중인 아이디(학번)입니다. 다시 확인해주세요.");
       return;
     }
 
-    // 저장 (⚠️ 비밀번호 평문 저장: 개발/디자인 확인용 전용)
+    // "은행명+계좌번호" 형태로 합치기 (예: 국민은행1234567890)
+    const account = `${form.bank}${form.accountNumber}`;
+
     const userToSave = {
       username: form.username.trim(),
       password: form.password,
@@ -74,8 +99,8 @@ export default function Signup() {
       email: form.email.trim(),
       dept: form.dept,
       phone: form.phone.trim(),
-      account: form.account.trim(),
-      birth: form.birth || '',
+      account,
+      birth: form.birth || "",
     };
     users.push(userToSave);
     saveUsers(users);
@@ -84,8 +109,8 @@ export default function Signup() {
     const { password, ...safeUser } = userToSave;
     login(`dev-${Date.now()}`, safeUser);
 
-    alert('회원가입이 완료되었습니다');
-    navigate('/'); // 완료 후 메인으로 이동
+    alert("회원가입이 완료되었습니다");
+    navigate("/"); // 완료 후 메인으로 이동
   };
 
   return (
@@ -137,7 +162,9 @@ export default function Signup() {
             <option>일본학과</option>
             <option>문헌정보학과</option>
             <option>문화관광외식학부 문화관광학전공</option>
-            <option>문화관광외식학부 르꼬르동블루외식경영전공</option>
+            <option>
+              문화관광외식학부 르꼬르동블루외식경영전공
+            </option>
             <option>교육학부</option>
             <option>화학과</option>
             <option>생명시스템학부</option>
@@ -187,7 +214,6 @@ export default function Signup() {
         </div>
 
         <label className="Label">학번(아이디)</label>
-        {/* ✅ 중복확인 버튼 제거 → 인풋만 */}
         <input
           className="Input"
           name="username"
@@ -224,14 +250,40 @@ export default function Signup() {
           placeholder="example@sookmyung.ac.kr"
         />
 
+        {/* ✅ 환급계좌: 은행 드롭다운 + 계좌번호 인풋 */}
         <label className="Label">환급계좌</label>
-        <input
-          className="Input"
-          name="account"
-          value={form.account}
-          onChange={onChange}
-          placeholder="은행명+계좌번호"
-        />
+        <div className="Row">
+          {/* 은행 선택: 폭 110px 고정 */}
+          <div
+            className="SelectWrap"
+            style={{ flex: "0 0 110px", maxWidth: "110px" }}
+          >
+            <select
+              className="Select"
+              name="bank"
+              value={form.bank}
+              onChange={onChange}
+            >
+              <option value="">은행 선택</option>
+              {BANKS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+            <span className="Chevron">▾</span>
+          </div>
+
+          {/* 나머지 공간은 계좌번호 전용 */}
+          <input
+            className="Input"
+            style={{ flex: "1 1 auto" }}
+            name="accountNumber"
+            value={form.accountNumber}
+            onChange={onChange}
+            placeholder="계좌번호만 입력"
+          />
+        </div>
 
         {/* 약관 동의 */}
         <div className="AgreeRow">

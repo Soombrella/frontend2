@@ -43,9 +43,9 @@
   margin-top:8px;
 }
 .Row {
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:10px;
+  display:flex;
+  align-items: center;
+  gap:4px;
 }
 .Select {
   height:44px;
