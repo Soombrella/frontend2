@@ -8,15 +8,22 @@
 
 /* 헤더 */
 .profile-header {
+  position: relative;  /* h1을 absolute로 가운데 배치하기 위해 필요 */
   display: grid;
   grid-template-columns: 48px 1fr;
   align-items: center;
   padding: 16px 20px 8px;
   gap: 8px;
 }
+
 .profile-header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);   /* 화면 기준 완전 가운데 */
   font-size: 20px;
   font-weight: 700;
+  margin: 0;
+  text-align: center;
 }
 
 .back-btn {
