@@ -14,52 +14,55 @@ export default function Signup() {
   const { login } = useAuth();
 
   const [form, setForm] = useState({
-    name: '', dept: '', username: '', phone: '', password: '', email: '', account: '', birth: ''
+    name: '',
+    dept: '',
+    username: '',
+    phone: '',
+    password: '',
+    email: '',
+    account: '',
+    birth: '',
   });
-  const [idChecked, setIdChecked] = useState(false);
-  const [checking, setChecking] = useState(false);
+
+  // 중복확인 기능 제거 → 이 상태들도 삭제
   const [agree, setAgree] = useState(false); // 약관 동의
 
   const onChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    if (name === 'username') setIdChecked(false);
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ 백엔드 없이 로컬에서 아이디(학번) 중복확인
-  const checkId = async () => {
-    if (!form.username.trim()) return;
-    setChecking(true);
-    try {
-      const users = loadUsers();
-      const available = !users.some(u => u.username === form.username.trim());
-      setIdChecked(available);
-      if (!available) alert('이미 사용 중인 아이디(학번)입니다.');
-      else alert('사용 가능한 아이디(학번)입니다.');
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-  const isPwValid = /[A-Za-z]/.test(form.password) && /\d/.test(form.password) && form.password.length >= 8;
+  const isEmailValid =
+    form.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const isPwValid =
+    /[A-Za-z]/.test(form.password) &&
+    /\d/.test(form.password) &&
+    form.password.length >= 8;
 
   const requiredOk = Boolean(
-    form.name && form.dept && form.username && form.phone &&
-    form.password && form.email && form.account && isPwValid && isEmailValid
+    form.name &&
+      form.dept &&
+      form.username &&
+      form.phone &&
+      form.password &&
+      form.email &&
+      form.account &&
+      isPwValid &&
+      isEmailValid
   );
 
-  const canNext = requiredOk && idChecked && agree; // 동의까지 포함
+  // ✅ 중복확인 체크(idChecked) 제거 → 약관 동의만 포함
+  const canNext = requiredOk && agree;
 
   // ✅ 백엔드 없이 로컬 회원가입 + 자동 로그인
   const handleNext = () => {
     if (!canNext) return;
 
     const users = loadUsers();
-    // 안전망: 혹시 중복확인 이후에 누군가 추가됐을 수 있으니 다시 한 번 체크
-    if (users.some(u => u.username === form.username.trim())) {
+
+    // 안전망: 가입 직전에 한 번만 중복 체크
+    if (users.some((u) => u.username === form.username.trim())) {
       alert('이미 사용 중인 아이디(학번)입니다. 다시 확인해주세요.');
-      setIdChecked(false);
       return;
     }
 
@@ -82,14 +85,20 @@ export default function Signup() {
     login(`dev-${Date.now()}`, safeUser);
 
     alert('회원가입이 완료되었습니다');
-    navigate('/');   // 완료 후 메인으로 이동 (원하면 '/mypage'로)
+    navigate('/'); // 완료 후 메인으로 이동
   };
 
   return (
     <main className="SignupWrap">
       <header className="SignupHeader">
         <div className="HeaderLeft">
-          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
+          <button
+            className="BackBtn"
+            onClick={() => navigate(-1)}
+            aria-label="뒤로가기"
+          >
+            ←
+          </button>
           <h1 className="Title">계정 정보를 입력해주세요</h1>
         </div>
         <button
@@ -102,13 +111,23 @@ export default function Signup() {
         </button>
       </header>
 
-      <form className="Form" onSubmit={(e)=>e.preventDefault()}>
+      <form className="Form" onSubmit={(e) => e.preventDefault()}>
         <label className="Label">이름</label>
-        <input className="Input" name="name" value={form.name} onChange={onChange} />
+        <input
+          className="Input"
+          name="name"
+          value={form.name}
+          onChange={onChange}
+        />
 
         <label className="Label">학과</label>
         <div className="SelectWrap">
-          <select className="Select" name="dept" value={form.dept} onChange={onChange}>
+          <select
+            className="Select"
+            name="dept"
+            value={form.dept}
+            onChange={onChange}
+          >
             <option value="">학과 선택</option>
             <option>한국어문학부</option>
             <option>역사문화학과</option>
@@ -168,15 +187,22 @@ export default function Signup() {
         </div>
 
         <label className="Label">학번(아이디)</label>
-        <div className="Row">
-          <input className="Input" name="username" value={form.username} onChange={onChange} />
-          <button type="button" className="SmallBtn" onClick={checkId} disabled={checking}>
-            {checking ? '확인중…' : '중복확인'}
-          </button>
-        </div>
+        {/* ✅ 중복확인 버튼 제거 → 인풋만 */}
+        <input
+          className="Input"
+          name="username"
+          value={form.username}
+          onChange={onChange}
+        />
 
         <label className="Label">전화번호</label>
-        <input className="Input" name="phone" value={form.phone} onChange={onChange} placeholder="010-0000-0000" />
+        <input
+          className="Input"
+          name="phone"
+          value={form.phone}
+          onChange={onChange}
+          placeholder="010-0000-0000"
+        />
 
         <label className="Label">비밀번호</label>
         <input
@@ -199,11 +225,13 @@ export default function Signup() {
         />
 
         <label className="Label">환급계좌</label>
-        <input className="Input" name="account" value={form.account} onChange={onChange} placeholder="은행명+계좌번호" />
-
-        {/* (선택) 생년월일 */}
-        {/* <label className="Label">생년월일</label>
-        <input className="Input" name="birth" value={form.birth} onChange={onChange} placeholder="YYYY-MM-DD" /> */}
+        <input
+          className="Input"
+          name="account"
+          value={form.account}
+          onChange={onChange}
+          placeholder="은행명+계좌번호"
+        />
 
         {/* 약관 동의 */}
         <div className="AgreeRow">

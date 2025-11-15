@@ -5,21 +5,23 @@ const USERS_KEY = 'sb_users';
 const load = () => JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
 const save = (arr) => localStorage.setItem(USERS_KEY, JSON.stringify(arr));
 
-// 아이디(학번) 중복확인
-export function checkId(username) {
-  const users = load();
-  return !users.some(u => u.username === username);
-}
+// ✅ 학번(아이디) 중복확인용 별도 함수는 제거함
+//    - UI에서 "중복확인" 버튼은 사용하지 않고
+//    - 회원가입 시점에만 중복 체크를 수행
 
 // 회원가입
 export function signup({ username, password, name, email, dept, birth, account, phone }) {
   const users = load();
+
+  // 여기에서만 중복 방어 (실제 백엔드에서도 이런 식으로 처리할 예정)
   if (users.some(u => u.username === username)) {
     throw new Error('이미 사용 중인 아이디입니다.');
   }
+
   const user = { username, password, name, email, dept, birth, account, phone };
   users.push(user);
   save(users);
+
   // 자동 로그인용 결과 (password 제거)
   const safeUser = { ...user }; 
   delete safeUser.password;
@@ -67,7 +69,7 @@ export function updateProfileLocal(username, patch) {
   }
 }
 
-// 비밀번호 변경 (옵션: 나중에 쓸 수 있게)
+// 비밀번호 변경
 export function changePasswordLocal(username, oldPw, newPw) {
   const users = load();
   const idx = users.findIndex(u => u.username === username);
