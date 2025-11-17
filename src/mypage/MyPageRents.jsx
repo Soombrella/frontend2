@@ -90,6 +90,9 @@ function loadRents() {
       depositRefunded: false,
       thumb: null,
     },
+    { id:"b-2001", type:"battery", title:"보조배터리", status:"reserved",
+      rentDate:"2025-11-12", dueDate:"2025-11-15", returnDate:null,
+      depositPaid:true, depositRefunded:false, thumb:null, cable:true },
   ];
 
   localStorage.setItem("sb_rents", JSON.stringify(seed));
