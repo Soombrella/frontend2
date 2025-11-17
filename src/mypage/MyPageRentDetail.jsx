@@ -5,7 +5,7 @@ import "./mypage.css";
 import BottomTab from "../components/BottomTab";
 import "../components/BottomTab.css";
 import umbrellaImg from "../img/umbrella.jpg";
-import powerbankImg from "../img/powerbank.jpg"
+import powerbankImg from "../img/powerbank.jpg";
 
 /* ---------- 로컬 저장소에서 항목 조회 ---------- */
 function getById(id) {
@@ -103,19 +103,30 @@ export default function MyPageRentDetail(){
 
   const { currentStatus, derivedDueStr, badgeText, badgeClass, dday } = computeView(item);
 
+  // 이미지 / 라벨
+  const typeLabel = item.type === "umbrella" ? "우산" : "보조배터리";
+  const heroImg   = item.thumb || (item.type === "umbrella" ? umbrellaImg : powerbankImg);
+
   // 상세 정보 행
   const rows = [
     ["품목", item.title],
+  ];
+
+  // 🔌 보조배터리일 때만 케이블 여부 추가
+  if (item.type === "battery") {
+    // item.cable === true/false 라고 가정 (없으면 기본 "아니오")
+    const cable = item.cable === true;
+    rows.push(["케이블 대여 여부", cable ? "예" : "아니오"]);
+  }
+
+  rows.push(
     ["대여 상태", statusLabel(currentStatus)],
     ["대여일", item.rentDate || "-"],
     ["반납일", derivedDueStr || "-"], // 대여일 + 2일
     ...(currentStatus === "renting" || currentStatus === "overdue" ? [["남은/경과", dday]] : []),
     ["보증금 입금 여부", item.depositPaid ? "예" : "아니오"],
     ["보증금 환급 여부", item.depositRefunded ? "예" : "아니오"],
-  ];
-
-  const typeLabel = item.type === "umbrella" ? "우산" : "보조배터리";
-  const heroImg   = item.thumb || (item.type === "umbrella" ? umbrellaImg : powerbankImg);
+  );
 
   return (
     <main className="MyPageWrap">
