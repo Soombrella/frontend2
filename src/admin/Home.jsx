@@ -28,7 +28,6 @@ const COARSE_STATUS_MAP = {
 /** 배지 색상 클래스 선택 */
 function badgeClassByStatus(status) {
   if (STATUS_GROUPS.BLUE.includes(status)) {
-
     if (status === "입금대기") return "pill pill-blue tone-1";
     if (status === "입금완료") return "pill pill-blue tone-2";
     return "pill pill-blue tone-3"; // 대여중
@@ -43,14 +42,36 @@ function badgeClassByStatus(status) {
   return "pill pill-red tone-3"; // 미반납
 }
 
+/** 반납 예정일 자동 계산: 대여일 + 3일 */
+function calcReturnDate(rentAt) {
+  if (!rentAt || rentAt === "-") return "-";
+
+  const d = new Date(rentAt);
+  d.setDate(d.getDate() + 3);
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** 대여항목 표시: 우산 / 보조배터리 / 보조배터리(C) */
+function renderItemLabel(row) {
+  if (row.itemType === "보조배터리") {
+    return row.withCable ? "보조배터리(C)" : "보조배터리";
+  }
+  return "우산";
+}
+
 /** 데모용 더미 데이터 */
 const SEED = [
   {
     id: 1,
     name: "김학생",
     rentAt: "2025-11-05",
-    returnAt: "-",
     itemType: "우산",
+    withCable: false,
     status: "대여중",
     refundAccount: "국민 123456-00-000000",
     overdueDays: 0,
@@ -59,8 +80,8 @@ const SEED = [
     id: 2,
     name: "이학생",
     rentAt: "2025-11-01",
-    returnAt: "2025-11-02",
     itemType: "보조배터리",
+    withCable: true, // 케이블 같이
     status: "환급전",
     refundAccount: "신한 110-000-000000",
     overdueDays: 0,
@@ -69,8 +90,8 @@ const SEED = [
     id: 3,
     name: "박학생",
     rentAt: "2025-10-28",
-    returnAt: "-",
     itemType: "우산",
+    withCable: false,
     status: "연체중",
     refundAccount: "카카오 3333-00-0000000",
     overdueDays: 4,
@@ -79,15 +100,15 @@ const SEED = [
     id: 4,
     name: "최학생",
     rentAt: "2025-11-07",
-    returnAt: "2025-11-08",
     itemType: "보조배터리",
+    withCable: false, // 케이블 X
     status: "환급완료",
     refundAccount: "우리 1002-000-000000",
     overdueDays: 0,
   },
 ];
 
-/** 행별 상태 변경을 위한 셀렉트에 쓸 옵션 */
+/** 행별 상태 변경 옵션 */
 const STATUS_OPTIONS = [
   { label: "— 파랑(결제/대여) —", options: STATUS_GROUPS.BLUE },
   { label: "— 초록(환급) —", options: STATUS_GROUPS.GREEN },
@@ -95,11 +116,11 @@ const STATUS_OPTIONS = [
 ];
 
 export default function Home() {
-  const [itemFilter, setItemFilter] = useState("전체"); // 전체/우산/보조배터리
-  const [coarseStatus, setCoarseStatus] = useState("전체"); // 전체/대여중/반납/연체
+  const [itemFilter, setItemFilter] = useState("전체");
+  const [coarseStatus, setCoarseStatus] = useState("전체");
   const [rows, setRows] = useState(SEED);
 
-  /** 상단 필터 적용 */
+  /** 상단 필터 */
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       const itemOk =
@@ -112,7 +133,7 @@ export default function Home() {
     });
   }, [rows, itemFilter, coarseStatus]);
 
-  /** 상태 변경 핸들러 */
+  /** 상태 변경 */
   const updateStatus = (id, nextStatus) => {
     setRows((prev) =>
       prev.map((r) =>
@@ -121,10 +142,21 @@ export default function Home() {
     );
   };
 
+  /** 삭제 기능 */
+  const deleteRow = (id) => {
+    const ok = window.confirm("해당 학생 기록을 삭제할까요?");
+    if (!ok) return;
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
+
   return (
     <div className="admin-home">
       <header className="admin-home__header">
-        <button className="back-btn" aria-label="뒤로가기" onClick={() => window.history.back()}>
+        <button
+          className="back-btn"
+          aria-label="뒤로가기"
+          onClick={() => window.history.back()}
+        >
           ←
         </button>
         <h1>학생 대여 상태 관리</h1>
@@ -162,40 +194,61 @@ export default function Home() {
           <thead>
             <tr>
               <th>이름</th>
+              <th>대여항목</th>
               <th>대여일</th>
-              <th>반납일</th>
+              <th>반납 예정일</th>
               <th>상태</th>
               <th>환불계좌</th>
               <th className="col-action">관리</th>
             </tr>
           </thead>
+
           <tbody>
             {filtered.map((r) => {
               const pillClass = badgeClassByStatus(r.status);
-              const showTooltip = r.status === "연체중" && r.overdueDays > 0;
+              const showTooltip =
+                r.status === "연체중" && r.overdueDays > 0;
+
               return (
                 <tr key={r.id}>
                   <td>{r.name}</td>
+
+                  {/* ⭐ 새 컬럼: 대여항목 */}
+                  <td>{renderItemLabel(r)}</td>
+
                   <td>{r.rentAt}</td>
-                  <td>{r.returnAt}</td>
+
+                  {/* ⭐ 자동 계산된 반납 예정일 */}
+                  <td>{calcReturnDate(r.rentAt)}</td>
+
                   <td>
                     <span
-                      className={`${pillClass} ${showTooltip ? "has-tooltip" : ""}`}
-                      data-tooltip={showTooltip ? `연체 ${r.overdueDays}일` : ""}
+                      className={`${pillClass} ${
+                        showTooltip ? "has-tooltip" : ""
+                      }`}
+                      data-tooltip={
+                        showTooltip ? `연체 ${r.overdueDays}일` : ""
+                      }
                     >
                       {r.status}
                     </span>
                   </td>
+
                   <td className="mono">{r.refundAccount}</td>
+
                   <td className="col-action">
-                    {/* 상태 변경 셀렉트 + 적용 버튼 */}
                     <div className="changer">
                       <select
                         defaultValue={r.status}
-                        onChange={(e) => updateStatus(r.id, e.target.value)}
+                        onChange={(e) =>
+                          updateStatus(r.id, e.target.value)
+                        }
                       >
                         {STATUS_OPTIONS.map((grp) => (
-                          <optgroup key={grp.label} label={grp.label}>
+                          <optgroup
+                            key={grp.label}
+                            label={grp.label}
+                          >
                             {grp.options.map((st) => (
                               <option key={st} value={st}>
                                 {st}
@@ -204,11 +257,23 @@ export default function Home() {
                           </optgroup>
                         ))}
                       </select>
+
                       <button
                         className="btn-outline"
-                        onClick={() => alert("상태가 저장되었습니다. (실서버 연동 필요)")}
+                        onClick={() =>
+                          alert(
+                            "상태가 저장되었습니다. (실서버 연동 필요)"
+                          )
+                        }
                       >
                         저장
+                      </button>
+
+                      <button
+                        className="btn-outline"
+                        onClick={() => deleteRow(r.id)}
+                      >
+                        삭제
                       </button>
                     </div>
                   </td>
@@ -218,7 +283,7 @@ export default function Home() {
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="empty">
+                <td colSpan={7} className="empty">
                   표시할 데이터가 없습니다.
                 </td>
               </tr>
@@ -228,7 +293,6 @@ export default function Home() {
       </section>
 
       <AdminBottomTab />
-
     </div>
   );
 }

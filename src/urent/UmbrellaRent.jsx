@@ -9,7 +9,6 @@ const UmbrellaRent = () => {
   const navigate = useNavigate();
 
   const [visitDate, setVisitDate] = useState(null);
-  const [returnDate, setReturnDate] = useState(null);
   const [isProxyReturn, setIsProxyReturn] = useState(null);
   const [showProcedureModal, setShowProcedureModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -30,10 +29,12 @@ const UmbrellaRent = () => {
   }, []);
 
   const formattedDueDate = `${dueDate.getMonth() + 1}월 ${dueDate.getDate()}일`;
-  const daysLeft = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.ceil(
+    (dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
 
   const handleSubmit = () => {
-    if (!visitDate || !returnDate || isProxyReturn === null) {
+    if (!visitDate || isProxyReturn === null) {
       alert("모든 항목을 입력해주세요!");
       return;
     }
@@ -43,9 +44,14 @@ const UmbrellaRent = () => {
   return (
     <div className="umbrella-container">
       <div className="umbrella-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          ←
+        </button>
         <h2>우산 대여</h2>
-        <button className="procedure-btn" onClick={() => setShowProcedureModal(true)}>
+        <button
+          className="procedure-btn"
+          onClick={() => setShowProcedureModal(true)}
+        >
           대여절차
         </button>
       </div>
@@ -63,26 +69,8 @@ const UmbrellaRent = () => {
         <label>방문 예정일</label>
         <DatePicker
           selected={visitDate}
-          onChange={(date) => {
-            setVisitDate(date);
-            // 방문일을 바꾸면, 반납일이 방문일보다 이르면 초기화
-            if (returnDate && date && returnDate < date) setReturnDate(null);
-          }}
+          onChange={(date) => setVisitDate(date)}
           minDate={today}
-          maxDate={maxDate}
-          placeholderText="날짜를 선택하세요"
-          dateFormat="yyyy-MM-dd"
-          className="date-picker"
-        />
-      </div>
-
-      {/* 반납 예정일 */}
-      <div className="umbrella-field">
-        <label>반납 예정일</label>
-        <DatePicker
-          selected={returnDate}
-          onChange={(date) => setReturnDate(date)}
-          minDate={visitDate || today}
           maxDate={maxDate}
           placeholderText="날짜를 선택하세요"
           dateFormat="yyyy-MM-dd"
@@ -115,13 +103,20 @@ const UmbrellaRent = () => {
         </div>
       </div>
 
-      <p className="deposit-info">보증금 입금 계좌(6000원): 00은행 [계좌번호]</p>
+      <p className="deposit-info">
+        보증금 입금 계좌(6000원): 00은행 [계좌번호]
+      </p>
 
-      <button className="submit-btn" onClick={handleSubmit}>신청완료</button>
+      <button className="submit-btn" onClick={handleSubmit}>
+        신청완료
+      </button>
 
       {/* 대여절차 모달 */}
       {showProcedureModal && (
-        <div className="modal-overlay" onClick={() => setShowProcedureModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowProcedureModal(false)}
+        >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>대여 절차 안내</h3>
             <ol>
@@ -131,8 +126,16 @@ const UmbrellaRent = () => {
               <li>대여 기간(3일) 내에 반납하기</li>
               <li>보증금 환불받기</li>
             </ol>
-            <p><strong>보증금 입금 후 대여하지 않았을 경우</strong><br />3일 후 자동취소, 보증금 환급</p>
-            <p><strong>보증금 입금하지 않았을 경우</strong><br />당일 자동 취소</p>
+            <p>
+              <strong>보증금 입금 후 대여하지 않았을 경우</strong>
+              <br />
+              3일 후 자동취소, 보증금 환급
+            </p>
+            <p>
+              <strong>보증금 입금하지 않았을 경우</strong>
+              <br />
+              당일 자동 취소
+            </p>
             <button onClick={() => setShowProcedureModal(false)}>닫기</button>
           </div>
         </div>
@@ -140,13 +143,27 @@ const UmbrellaRent = () => {
 
       {/* 신청완료 모달 */}
       {showSubmitModal && (
-        <div className="modal-overlay" onClick={() => setShowSubmitModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowSubmitModal(false)}
+        >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <p>우산 대여 기간이 {daysLeft}일 남았습니다.</p>
-            <p>{`${dueDate.getMonth() + 1}/${dueDate.getDate()}`}까지 반납 부탁드립니다.</p>
+            <p>
+              {`${dueDate.getMonth() + 1}/${dueDate.getDate()}`}까지 반납
+              부탁드립니다.
+            </p>
             <div className="refund-info">
-              <p><strong>우산</strong><br />1~3일 차 반납(대여 기간 내): 6,000원 (전액 환급)</p>
-              <p><strong>보조배터리</strong><br />1~3일 차 반납(대여 기간 내): 8,000원 (전액 환급)</p>
+              <p>
+                <strong>우산</strong>
+                <br />
+                1~3일 차 반납(대여 기간 내): 6,000원 (전액 환급)
+              </p>
+              <p>
+                <strong>보조배터리</strong>
+                <br />
+                1~3일 차 반납(대여 기간 내): 8,000원 (전액 환급)
+              </p>
             </div>
             <button onClick={() => setShowSubmitModal(false)}>확인</button>
           </div>
