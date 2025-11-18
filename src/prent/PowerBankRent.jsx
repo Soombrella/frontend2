@@ -9,7 +9,6 @@ const PowerBankRent = () => {
   const navigate = useNavigate();
 
   const [visitDate, setVisitDate] = useState(null);
-  const [returnDate, setReturnDate] = useState(null);
   const [isProxyReturn, setIsProxyReturn] = useState(null);
   const [hasCable, setHasCable] = useState(null);
   const [showProcedureModal, setShowProcedureModal] = useState(false);
@@ -21,6 +20,8 @@ const PowerBankRent = () => {
     d.setDate(d.getDate() + 3);
     return d;
   }, []);
+
+  // 반납 마감(오늘부터 3일 뒤 16:30 고정)
   const dueDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -29,11 +30,13 @@ const PowerBankRent = () => {
   }, []);
 
   const formattedDueDate = `${dueDate.getMonth() + 1}월 ${dueDate.getDate()}일`;
-  const daysLeft = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const deposit = hasCable === true ? 8000 : 6000; // 케이블 선택 시 +2000
+  const daysLeft = Math.ceil(
+    (dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+  const deposit = hasCable === true ? 8000 : 6000;
 
   const handleSubmit = () => {
-    if (!visitDate || !returnDate || isProxyReturn === null || hasCable === null) {
+    if (!visitDate || isProxyReturn === null || hasCable === null) {
       alert("모든 항목을 입력해주세요!");
       return;
     }
@@ -63,25 +66,8 @@ const PowerBankRent = () => {
         <label>방문 예정일</label>
         <DatePicker
           selected={visitDate}
-          onChange={(d) => {
-            setVisitDate(d);
-            if (returnDate && d && returnDate < d) setReturnDate(null);
-          }}
+          onChange={(d) => setVisitDate(d)}
           minDate={today}
-          maxDate={maxDate}
-          placeholderText="날짜를 선택하세요"
-          dateFormat="yyyy-MM-dd"
-          className="date-picker"
-        />
-      </div>
-
-      {/* 반납 예정일 */}
-      <div className="umbrella-field">
-        <label>반납 예정일</label>
-        <DatePicker
-          selected={returnDate}
-          onChange={(d) => setReturnDate(d)}
-          minDate={visitDate || today}
           maxDate={maxDate}
           placeholderText="날짜를 선택하세요"
           dateFormat="yyyy-MM-dd"
@@ -116,7 +102,7 @@ const PowerBankRent = () => {
 
       {/* 케이블 여부 */}
       <div className="umbrella-field checkbox-group">
-        <label>케이블 여부 (보증금+2000)</label>
+        <label>케이블 여부 (보증금 +2000원)</label>
         <div role="radiogroup" aria-label="케이블 여부">
           <label>
             <input
@@ -140,7 +126,7 @@ const PowerBankRent = () => {
       </div>
 
       <p className="deposit-info">
-        보증금 입금 계좌(6000원 or 8000원): 00은행 [계좌번호]
+        보증금 입금 계좌({deposit.toLocaleString()}원): 00은행 [계좌번호]
       </p>
 
       <button className="submit-btn" onClick={handleSubmit}>
@@ -174,7 +160,7 @@ const PowerBankRent = () => {
             <p>{`${dueDate.getMonth() + 1}/${dueDate.getDate()}`}까지 반납 부탁드립니다.</p>
             <div className="refund-info">
               <p><strong>보조배터리</strong><br />1~3일 차 반납(대여 기간 내): 8,000원 (전액 환급)</p>
-              <p style={{marginTop:6}}>선택 보증금: {deposit.toLocaleString()}원</p>
+              <p style={{ marginTop: 6 }}>선택 보증금: {deposit.toLocaleString()}원</p>
             </div>
             <button onClick={() => setShowSubmitModal(false)}>확인</button>
           </div>
