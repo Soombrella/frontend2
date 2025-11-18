@@ -48,6 +48,13 @@ export default function Stock() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next } : r)));
   };
 
+  const deleteRow = (id) => {
+    const ok = window.confirm("해당 항목을 삭제할까요?");
+    if (!ok) return;
+
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
+
   return (
     <div className="stock-page">
       <header className="stock-header">
@@ -115,6 +122,12 @@ export default function Stock() {
                       onClick={() => alert("상태가 저장되었습니다. (API 연동 필요)")}
                     >
                       저장
+                    </button>
+                    <button
+                      className="btn-outline"
+                      onClick={() => deleteRow(r.id)}
+                    >
+                      삭제
                     </button>
                   </div>
                 </td>

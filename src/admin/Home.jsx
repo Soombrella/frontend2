@@ -121,6 +121,14 @@ export default function Home() {
     );
   };
 
+    /** 행 삭제 핸들러 */
+  const deleteRow = (id) => {
+    const ok = window.confirm("해당 학생 기록을 삭제할까요?");
+    if (!ok) return;
+
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
+
   return (
     <div className="admin-home">
       <header className="admin-home__header">
@@ -209,6 +217,12 @@ export default function Home() {
                         onClick={() => alert("상태가 저장되었습니다. (실서버 연동 필요)")}
                       >
                         저장
+                      </button>
+                      <button
+                        className="btn-outline"
+                        onClick={() => deleteRow(r.id)}
+                      >
+                        삭제
                       </button>
                     </div>
                   </td>

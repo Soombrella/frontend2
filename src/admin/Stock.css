@@ -55,7 +55,7 @@
 .stock-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 .stock-table th,
 .stock-table td {
