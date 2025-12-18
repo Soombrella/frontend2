@@ -2,9 +2,10 @@
 import "./signup.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "../auth/AuthContext";
+import { signupApi, loginApi } from "../api/auth"; // ✅ signup + login
+import { useAuth } from "../auth/AuthContext";     // ✅ 자동 로그인 반영용
 
-// 🔹 환급계좌용 은행 목록 (여기 안에서 마음대로 수정해도 됨)
+// 🔹 환급계좌용 은행 목록
 const BANKS = [
   "국민은행",
   "신한은행",
@@ -22,33 +23,29 @@ const BANKS = [
   "케이뱅크",
   "새마을금고",
   "SC제일",
-  "경남은행", "수협", "제주은행"
+  "경남은행",
+  "수협",
+  "제주은행",
 ];
-
-// 로컬 저장 키
-const USERS_KEY = "sb_users";
-const loadUsers = () =>
-  JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-const saveUsers = (arr) =>
-  localStorage.setItem(USERS_KEY, JSON.stringify(arr));
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth(); // ✅ AuthContext의 login(token, user)
 
   const [form, setForm] = useState({
     name: "",
     dept: "",
-    username: "",
+    username: "", // student_no
     phone: "",
     password: "",
     email: "",
-    bank: "",          // ✅ 은행명
-    accountNumber: "", // ✅ 계좌번호
-    birth: "",
+    bank: "", // account_bank
+    accountNumber: "", // account_num
+    birth: "", // 명세에 없으니 서버로는 안 보냄
   });
 
-  const [agree, setAgree] = useState(false); // 약관 동의
+  const [agree, setAgree] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -57,6 +54,7 @@ export default function Signup() {
 
   const isEmailValid =
     form.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+
   const isPwValid =
     /[A-Za-z]/.test(form.password) &&
     /\d/.test(form.password) &&
@@ -69,48 +67,46 @@ export default function Signup() {
       form.phone &&
       form.password &&
       form.email &&
-      form.bank &&           // ✅ 은행 선택했는지
-      form.accountNumber &&  // ✅ 계좌번호 입력했는지
+      form.bank &&
+      form.accountNumber &&
       isPwValid &&
       isEmailValid
   );
 
-  const canNext = requiredOk && agree;
+  const canNext = requiredOk && agree && !submitting;
 
-  // ✅ 백엔드 없이 로컬 회원가입 + 자동 로그인
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!canNext) return;
 
-    const users = loadUsers();
+    setSubmitting(true);
+    try {
+      // ✅ 백엔드 명세에 맞게 payload 매핑
+      const payload = {
+        name: form.name.trim(),
+        department: form.dept,
+        student_no: form.username.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        email: form.email.trim(),
+        account_bank: form.bank,
+        account_num: form.accountNumber.trim(),
+      };
 
-    // 가입 직전에 한 번만 중복 체크
-    if (users.some((u) => u.username === form.username.trim())) {
-      alert("이미 사용 중인 아이디(학번)입니다. 다시 확인해주세요.");
-      return;
+      // 1) 회원가입
+      await signupApi(payload);
+
+      // 2) (선택) 회원가입 성공 → 바로 로그인해서 토큰 저장 + 전역 상태 반영
+      const loginRes = await loginApi(payload.student_no, payload.password);
+      login(loginRes.token, loginRes.user);
+
+      alert("회원가입이 완료되었습니다.");
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error(err);
+      alert(err?.message || "회원가입에 실패했습니다.");
+    } finally {
+      setSubmitting(false);
     }
-
-    // "은행명+계좌번호" 형태로 합치기 (예: 국민은행1234567890)
-    const account = `${form.bank}${form.accountNumber}`;
-
-    const userToSave = {
-      username: form.username.trim(),
-      password: form.password,
-      name: form.name.trim(),
-      email: form.email.trim(),
-      dept: form.dept,
-      phone: form.phone.trim(),
-      account,
-      birth: form.birth || "",
-    };
-    users.push(userToSave);
-    saveUsers(users);
-
-    // 자동 로그인용 안전 객체
-    const { password, ...safeUser } = userToSave;
-    login(`dev-${Date.now()}`, safeUser);
-
-    alert("회원가입이 완료되었습니다");
-    navigate("/"); // 완료 후 메인으로 이동
   };
 
   return (
@@ -126,13 +122,14 @@ export default function Signup() {
           </button>
           <h1 className="Title">계정 정보를 입력해주세요</h1>
         </div>
+
         <button
           className="NextBtn"
           type="button"
           disabled={!canNext}
           onClick={handleNext}
         >
-          다음으로
+          {submitting ? "처리 중..." : "다음으로"}
         </button>
       </header>
 
@@ -162,9 +159,7 @@ export default function Signup() {
             <option>일본학과</option>
             <option>문헌정보학과</option>
             <option>문화관광외식학부 문화관광학전공</option>
-            <option>
-              문화관광외식학부 르꼬르동블루외식경영전공
-            </option>
+            <option>문화관광외식학부 르꼬르동블루외식경영전공</option>
             <option>교육학부</option>
             <option>화학과</option>
             <option>생명시스템학부</option>
@@ -250,10 +245,8 @@ export default function Signup() {
           placeholder="example@sookmyung.ac.kr"
         />
 
-        {/* ✅ 환급계좌: 은행 드롭다운 + 계좌번호 인풋 */}
         <label className="Label">환급계좌</label>
         <div className="Row">
-          {/* 은행 선택: 폭 110px 고정 */}
           <div
             className="SelectWrap"
             style={{ flex: "0 0 110px", maxWidth: "110px" }}
@@ -274,7 +267,6 @@ export default function Signup() {
             <span className="Chevron">▾</span>
           </div>
 
-          {/* 나머지 공간은 계좌번호 전용 */}
           <input
             className="Input"
             style={{ flex: "1 1 auto" }}
@@ -285,7 +277,6 @@ export default function Signup() {
           />
         </div>
 
-        {/* 약관 동의 */}
         <div className="AgreeRow">
           <label className="CheckLabel">
             <input
