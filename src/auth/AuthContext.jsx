@@ -1,77 +1,56 @@
 // src/auth/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);   // { username, name, email, dept, password? }
-  const [token, setToken] = useState(null); // 문자열
+const TOKEN_KEY = "sb_token";
+const USER_KEY = "sb_user";
 
-  // 앱 처음 켤 때 localStorage에서 로그인 정보 복원
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
+
+  // ✅ 새로고침해도 유지: 앱 시작 시 localStorage에서 복구
   useEffect(() => {
-    const rawUser = localStorage.getItem("sb_user");
-    const rawToken = localStorage.getItem("sb_token");
-    if (rawUser && rawToken) {
-      try {
-        setUser(JSON.parse(rawUser));
-        setToken(rawToken);
-      } catch {
-        // 파싱 실패하면 싹 비움
-        localStorage.removeItem("sb_user");
-        localStorage.removeItem("sb_token");
-      }
+    try {
+      const savedToken = localStorage.getItem(TOKEN_KEY);
+      const savedUser = localStorage.getItem(USER_KEY);
+
+      if (savedToken) setToken(savedToken);
+      if (savedUser) setUser(JSON.parse(savedUser));
+    } catch (e) {
+      console.error("Auth restore failed:", e);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setToken(null);
+      setUser(null);
     }
   }, []);
 
-  // 로그인
-  const login = (token, user) => {
-    setToken(token);
-    setUser(user);
-    localStorage.setItem("sb_token", token);
-    localStorage.setItem("sb_user", JSON.stringify(user));
+  const login = (newToken, newUser) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
   };
 
-  // 로그아웃
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem("sb_token");
-    localStorage.removeItem("sb_user");
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   };
 
-  // ✏️ 프로필 수정: email, dept 등 일부만 패치
-  const updateUser = (patch) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const next = { ...prev, ...patch };
-
-      // 현재 로그인 사용자 정보 갱신
-      localStorage.setItem("sb_user", JSON.stringify(next));
-
-      // 회원 목록(sb_users)에도 반영
-      const listRaw = localStorage.getItem("sb_users");
-      if (listRaw && prev.username) {
-        try {
-          const list = JSON.parse(listRaw).map((u) =>
-            u.username === prev.username ? { ...u, ...patch } : u
-          );
-          localStorage.setItem("sb_users", JSON.stringify(list));
-        } catch {
-          // 목록이 깨져 있으면 그냥 무시
-        }
-      }
-
-      return next;
-    });
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ token, user, isAuthed: !!token, login, logout }),
+    [token, user]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
