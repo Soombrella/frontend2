@@ -23,6 +23,9 @@ import AdminHome from './admin/Home.jsx';
 import AdminStock from './admin/Stock.jsx';
 import AdminProfile from './admin/Profile.jsx';
 
+// ✅ 비밀번호 찾기
+import FindPwRequest from "./findpw/FindPwRequest.jsx";
+import FindPwVerify from "./findpw/FindPwVerify.jsx";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -36,6 +39,10 @@ root.render(
           <Route path="/rent" element={<UmbrellaRent />} />
           <Route path="/battery" element={<PowerBankRent />} />
           <Route path="/signup" element={<Signup />} />
+
+          {/* ✅ Find Password (public) */}
+          <Route path="/findpw" element={<FindPwRequest />} />
+          <Route path="/findpw/verify" element={<FindPwVerify />} />
 
           {/* My Page (protected) */}
           <Route

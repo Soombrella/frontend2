@@ -1,0 +1,134 @@
+/* ✅ 전체 box-sizing 통일 (삐져나옴 방지 핵심) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.FindPwWrap {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: #ffffff;
+}
+
+.FindPwCard {
+  width: 420px;
+  max-width: 92vw;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  padding: 22px;
+  background: #fff;
+}
+
+/* ✅ 타이틀 줄 */
+.FindPwHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.BackBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px 8px;
+}
+
+.FindPwTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ✅ 폼을 column으로 고정해서 width 계산 꼬이는 거 방지 */
+.FindPwForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* ✅ input-버튼 간격 여기서 해결 */
+}
+
+.Label {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ✅ 삐져나오는 거 방지: width 100% + min-width 0 */
+.Input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 0 14px;
+  background: #f6f7f8;
+  outline: none;
+}
+
+.Input:focus {
+  border-color: #111827;
+  background: #fff;
+}
+
+.PrimaryBtn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #111827;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px; /* ✅ 버튼이 너무 붙는 거 추가 안전장치 */
+}
+
+.PrimaryBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.Helper {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ✅ 링크 클릭 안 먹는 이슈 방지: button으로 처리 */
+.InlineLinkBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #111827;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* verify: 이메일 표시 */
+.ReadOnlyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  background: #f6f7f8;
+}
+
+.ReadOnlyLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.ReadOnlyValue {
+  font-size: 13px;
+  color: #111827;
+  font-weight: 600;
+}
