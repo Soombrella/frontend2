@@ -1,12 +1,13 @@
 // src/mypage/MyPage.jsx
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getMyInfoApi } from "../api/mypage";
 import "./mypage.css";
 import { useNavigate, Link } from "react-router-dom";
 import BottomTab from "../components/BottomTab";
 import "../components/BottomTab.css";
 import SimpleModal from "../components/SimpleModal";
 import { useAuth } from "../auth/AuthContext";
-import { MAJORS } from "../data/majors"; // ["소프트웨어학부 컴퓨터과학전공", ...]
+import { MAJORS } from "../data/majors";
 
 // 비밀번호 변경용 모의 이메일 코드 저장 키
 const CODE_KEY = "sb_pwd_code";
@@ -15,7 +16,6 @@ export default function MyPage() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth() ?? {};
 
-  // 표시용 안전한 값
   const v = (x) => (x ? x : "");
 
   /* ---------------- 프로필 수정 모달 ---------------- */
@@ -26,6 +26,43 @@ export default function MyPage() {
     dept: user?.dept || "",
   });
   const [err, setErr] = useState("");
+
+  // ✅ 무한 호출 방지용 (StrictMode에서도 1회만 실행)
+  const fetchedRef = useRef(false);
+
+  // ✅ 페이지 진입 시 내 정보 불러오기
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    const fetchMyInfo = async () => {
+      try {
+        setErr("");
+        // ✅ getMyInfoApi는 "유저 객체"를 바로 리턴함 (res.data 아님)
+        const d = await getMyInfoApi();
+
+        // AuthContext에 서버 데이터 반영
+        if (typeof updateUser === "function") {
+          await updateUser(d);
+        }
+
+        // 프로필 수정 폼 동기화
+        setForm({
+          email: d.email || "",
+          dept: d.dept || "",
+        });
+      } catch (e) {
+        console.error(e);
+        if (e?.status === 401) {
+          navigate("/login", { replace: true });
+        } else {
+          setErr(e?.message || "내 정보 불러오기에 실패했습니다.");
+        }
+      }
+    };
+
+    fetchMyInfo();
+  }, [navigate, updateUser]);
 
   const openEdit = () => {
     setForm({ email: user?.email || "", dept: user?.dept || "" });
@@ -53,15 +90,13 @@ export default function MyPage() {
     }
 
     if (typeof updateUser !== "function") {
-      // AuthContext 쪽에서 아직 미구현인 경우
       setErr("현재 환경에서는 프로필 수정이 지원되지 않습니다.");
       return;
     }
 
     setSaving(true);
     try {
-      // ✅ 1안: 실제 저장은 AuthContext.updateUser가 담당
-      // (내부에서 fakeAuth.updateProfileLocal → 나중에 백엔드 API로 교체)
+      // 일단 로컬 반영(추후 PATCH /mypage/info 로 교체)
       await updateUser({ email: form.email, dept: form.dept });
       setEditOpen(false);
     } catch (e) {
@@ -79,13 +114,13 @@ export default function MyPage() {
   const [sentMsg, setSentMsg] = useState("");
   const [codeInput, setCodeInput] = useState("");
 
-  const genCode = () => String(Math.floor(100000 + Math.random() * 900000)); // 6자리
+  const genCode = () => String(Math.floor(100000 + Math.random() * 900000));
 
   const sendCode = async () => {
     setSending(true);
     try {
       const code = genCode();
-      const exp = Date.now() + 5 * 60 * 1000; // 5분
+      const exp = Date.now() + 5 * 60 * 1000;
       localStorage.setItem(
         CODE_KEY,
         JSON.stringify({ code, exp, email: user?.email || "" })
@@ -93,7 +128,6 @@ export default function MyPage() {
       setSentMsg(
         `인증번호를 ${user?.email || "등록된 이메일"}로 보냈습니다. (유효기간 5분)`
       );
-      // 개발 확인용 콘솔
       console.log("[DEV] password code:", code);
     } finally {
       setSending(false);
@@ -119,7 +153,6 @@ export default function MyPage() {
       }
 
       localStorage.removeItem(CODE_KEY);
-      // ✅ 비밀번호 변경 페이지로 이동 (실제 변경은 /mypage/password에서 처리)
       navigate("/mypage/password", { replace: true });
     } finally {
       setVerifying(false);
@@ -128,13 +161,8 @@ export default function MyPage() {
 
   return (
     <main className="MyPageWrap">
-      {/* 헤더 */}
       <header className="MPHeader">
-        <button
-          className="BackBtn"
-          onClick={() => navigate(-1)}
-          aria-label="뒤로가기"
-        >
+        <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">
           ←
         </button>
         <Link to="/" className="MPTitle MPBrandLink">
@@ -143,66 +171,35 @@ export default function MyPage() {
         <div style={{ width: 24 }} />
       </header>
 
-      {/* 프로필 요약 */}
       <section className="ProfileCard">
-        <div className="Avatar" aria-hidden>
-          👤
-        </div>
+        <div className="Avatar" aria-hidden>👤</div>
         <div className="Who">
           <div className="Nick">
-            {user?.name || "사용자"}{" "}
-            {user?.username ? `(${user.username})` : ""}
+            {user?.name || "사용자"} {user?.username ? `(${user.username})` : ""}
           </div>
           <div className="Meta">{user?.dept || "전공 미입력"}</div>
         </div>
       </section>
 
-      {/* 탭 */}
       <nav className="Tabs">
-        <button className="Tab active" type="button">
-          계정 정보
-        </button>
-        <button
-          className="Tab"
-          type="button"
-          onClick={() => navigate("/mypage/rents")}
-        >
+        <button className="Tab active" type="button">계정 정보</button>
+        <button className="Tab" type="button" onClick={() => navigate("/mypage/rents")}>
           대여 목록
         </button>
-        <button
-          className="Tab"
-          type="button"
-          onClick={() => navigate("/mypage/guide")}
-        >
+        <button className="Tab" type="button" onClick={() => navigate("/mypage/guide")}>
           이용 안내
         </button>
       </nav>
 
-      {/* 계정 정보 (읽기 전용) */}
       <section className="Card">
         <label className="Label">아이디</label>
-        <input
-          className="Input"
-          value={v(user?.username)}
-          readOnly
-          placeholder="-"
-        />
+        <input className="Input" value={v(user?.username)} readOnly placeholder="-" />
 
         <label className="Label">이름</label>
-        <input
-          className="Input"
-          value={v(user?.name)}
-          readOnly
-          placeholder="-"
-        />
+        <input className="Input" value={v(user?.name)} readOnly placeholder="-" />
 
         <label className="Label">이메일</label>
-        <input
-          className="Input"
-          value={v(user?.email)}
-          readOnly
-          placeholder="-"
-        />
+        <input className="Input" value={v(user?.email)} readOnly placeholder="-" />
 
         <label className="Label">전공</label>
         <div className="SelectWrap">
@@ -211,9 +208,10 @@ export default function MyPage() {
           </select>
           <span className="Chevron">▾</span>
         </div>
+
+        {err && <small style={{ color: "#b91c1c" }}>{err}</small>}
       </section>
 
-      {/* 액션 버튼 */}
       <div className="Actions">
         <button className="Btn ghost" type="button" onClick={openEdit}>
           프로필 수정
@@ -231,7 +229,6 @@ export default function MyPage() {
         </button>
       </div>
 
-      {/* ✏️ 프로필 수정 모달 (이메일/전공 드롭다운) */}
       <SimpleModal
         open={editOpen}
         title="프로필 수정"
@@ -241,9 +238,7 @@ export default function MyPage() {
         disabled={saving}
       >
         <div className="Card" style={{ gap: 10 }}>
-          <label className="Label" htmlFor="email">
-            이메일
-          </label>
+          <label className="Label" htmlFor="email">이메일</label>
           <input
             id="email"
             name="email"
@@ -256,9 +251,7 @@ export default function MyPage() {
             disabled={saving}
           />
 
-          <label className="Label" htmlFor="dept">
-            학과(전공)
-          </label>
+          <label className="Label" htmlFor="dept">학과(전공)</label>
           <div className="SelectWrap">
             <select
               id="dept"
@@ -270,9 +263,7 @@ export default function MyPage() {
             >
               <option value="">전공 선택</option>
               {MAJORS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
+                <option key={m} value={m}>{m}</option>
               ))}
             </select>
             <span className="Chevron">▾</span>
@@ -282,7 +273,6 @@ export default function MyPage() {
         </div>
       </SimpleModal>
 
-      {/* 🔐 비밀번호 변경: 이메일 인증 모달 */}
       <SimpleModal
         open={pwModalOpen}
         title="비밀번호 변경"
@@ -299,20 +289,13 @@ export default function MyPage() {
             등록된 이메일로 인증번호를 보내 드립니다.
           </p>
 
-          <button
-            type="button"
-            className="Btn ghost"
-            onClick={sendCode}
-            disabled={sending}
-          >
+          <button type="button" className="Btn ghost" onClick={sendCode} disabled={sending}>
             {sending ? "발송 중..." : "인증번호 보내기"}
           </button>
 
           {sentMsg && <small style={{ color: "#0b2d57" }}>{sentMsg}</small>}
 
-          <label className="Label" htmlFor="code">
-            인증번호
-          </label>
+          <label className="Label" htmlFor="code">인증번호</label>
           <input
             id="code"
             className="Input"
@@ -320,9 +303,7 @@ export default function MyPage() {
             maxLength={6}
             placeholder="6자리 숫자"
             value={codeInput}
-            onChange={(e) =>
-              setCodeInput(e.target.value.replace(/\D/g, ""))
-            }
+            onChange={(e) => setCodeInput(e.target.value.replace(/\D/g, ""))}
           />
 
           <small className="Note" style={{ color: "#6b7280" }}>

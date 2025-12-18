@@ -1,56 +1,60 @@
 // src/auth/AuthContext.jsx
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getMyInfoApi } from "../api/mypage";
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = "sb_token";
-const USER_KEY = "sb_user";
-
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // ⭐ 핵심
 
-  // ✅ 새로고침해도 유지: 앱 시작 시 localStorage에서 복구
+  // 새로고침 시 토큰으로 사용자 복구
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem(TOKEN_KEY);
-      const savedUser = localStorage.getItem(USER_KEY);
+    const restoreUser = async () => {
+      const token = localStorage.getItem("sb_token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-      if (savedToken) setToken(savedToken);
-      if (savedUser) setUser(JSON.parse(savedUser));
-    } catch (e) {
-      console.error("Auth restore failed:", e);
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      setToken(null);
-      setUser(null);
-    }
+      try {
+        const me = await getMyInfoApi();
+        setUser(me);
+      } catch (e) {
+        console.error("유저 복구 실패", e);
+        localStorage.removeItem("sb_token");
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    restoreUser();
   }, []);
 
-  const login = (newToken, newUser) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+  const login = (token, userData) => {
+    localStorage.setItem("sb_token", token);
+    setUser(userData);
   };
 
   const logout = () => {
-    setToken(null);
+    localStorage.removeItem("sb_token");
     setUser(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
   };
 
-  const value = useMemo(
-    () => ({ token, user, isAuthed: !!token, login, logout }),
-    [token, user]
-  );
+  const updateUser = (next) => {
+    setUser((prev) => ({ ...prev, ...next }));
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, updateUser }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  return useContext(AuthContext);
 }
