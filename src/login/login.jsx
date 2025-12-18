@@ -69,7 +69,7 @@ export default function Login() {
       </form>
 
       <div className="Links">
-        <Link to="/signup">회원가입하기</Link> | <Link to="#">비밀번호 찾기</Link>
+        <Link to="/signup">회원가입하기</Link> | <Link to="/findpw">비밀번호 찾기</Link>
       </div>
     </main>
   );
