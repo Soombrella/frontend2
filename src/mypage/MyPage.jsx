@@ -1,6 +1,7 @@
 // src/mypage/MyPage.jsx
 import { useEffect, useRef, useState } from "react";
 import { getMyInfoApi } from "../api/mypage";
+import { updateMyInfoApi } from "../api/mypage";
 import "./mypage.css";
 import { useNavigate, Link } from "react-router-dom";
 import BottomTab from "../components/BottomTab";
@@ -78,34 +79,42 @@ export default function MyPage() {
   const isEmail = (val) => /\S+@\S+\.\S+/.test(val);
 
   const saveProfile = async () => {
-    setErr("");
+  setErr("");
 
-    if (!isEmail(form.email)) {
-      setErr("이메일 형식이 올바르지 않습니다.");
-      return;
-    }
-    if (!form.dept.trim()) {
-      setErr("학과(전공)를 선택하세요.");
-      return;
+  if (!isEmail(form.email)) {
+    setErr("이메일 형식이 올바르지 않습니다.");
+    return;
+  }
+  if (!form.dept.trim()) {
+    setErr("학과(전공)를 선택하세요.");
+    return;
+  }
+
+  setSaving(true);
+  try {
+    // ✅ 백엔드 명세에 맞게 payload 구성 (키 이름은 명세대로!)
+    const payload = {
+      email: form.email.trim(),
+      department: form.dept,
+      // 계좌까지 수정이면 account_bank / account_num 같은 것도 여기에 추가
+    };
+
+    await updateMyInfoApi(payload);
+
+    // ✅ 성공하면 프론트 상태도 갱신
+    if (typeof updateUser === "function") {
+      updateUser({ email: payload.email, dept: payload.department });
     }
 
-    if (typeof updateUser !== "function") {
-      setErr("현재 환경에서는 프로필 수정이 지원되지 않습니다.");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      // 일단 로컬 반영(추후 PATCH /mypage/info 로 교체)
-      await updateUser({ email: form.email, dept: form.dept });
-      setEditOpen(false);
-    } catch (e) {
-      console.error(e);
-      setErr("저장 중 오류가 발생했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  };
+    setEditOpen(false);
+    alert("저장 완료");
+  } catch (e) {
+    console.error(e);
+    setErr(e?.message || "저장 중 오류가 발생했습니다.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   /* ---------------- 비밀번호 변경(모의 이메일 인증) ---------------- */
   const [pwModalOpen, setPwModalOpen] = useState(false);
@@ -314,5 +323,4 @@ export default function MyPage() {
 
       <BottomTab />
     </main>
-  );
-}
+  );}
