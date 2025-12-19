@@ -8,12 +8,29 @@ import umbrellaImg from "../img/umbrella.jpg";
 import powerbankImg from "../img/powerbank.jpg";
 import { getRentalDetailApi } from "../api/mypage";
 
- const statusLabelFromApi = (s) =>
-  s === "RESERVED" ? "예약중"
-  : s === "RENTING" ? "대여중"
-  : s === "OVERDUE" ? "연체중"
-  : s === "RETURNED" ? "반납완료"
-  : s || "-";
+const statusLabelFromApi = (s) =>
+  s === "RESERVED"
+    ? "예약중"
+    : s === "RENTING"
+    ? "대여중"
+    : s === "OVERDUE"
+    ? "연체중"
+    : s === "RETURNED"
+    ? "반납완료"
+    : s || "-";
+
+function normalizeCategory(raw) {
+  const c = String(raw || "").trim().toLowerCase();
+  // 백엔드가 umbrella / powerbank 로 넣는다고 했으니 우선 그걸 1순위로 처리
+  if (c === "umbrella") return { type: "umbrella", label: "우산" };
+  if (c === "powerbank") return { type: "battery", label: "보조배터리" };
+
+  // 혹시 한글/다른 문자열이 섞여오면 안전하게 흡수
+  if (c.includes("우산")) return { type: "umbrella", label: "우산" };
+  if (c.includes("배터리") || c.includes("보조")) return { type: "battery", label: "보조배터리" };
+
+  return { type: "umbrella", label: raw || "우산" };
+}
 
 export default function MyPageRentDetail() {
   const { reservationId } = useParams();
@@ -38,36 +55,46 @@ export default function MyPageRentDetail() {
         setLoading(false);
       }
     };
+
     if (reservationId) run();
   }, [reservationId, navigate]);
 
   const ui = useMemo(() => {
     if (!data) return null;
 
-    const category = data?.item?.category_name; // "우산" or "보조배터리"
-    const isBattery = category === "보조배터리";
+    // ✅ 명세 기준: data.item.category_name
+    const catRaw = data?.item?.category_name;
+    const { type, label } = normalizeCategory(catRaw);
+    const isBattery = type === "battery";
 
     return {
-      title: category || "대여 상세",
-      typeLabel: isBattery ? "보조배터리" : "우산",
+      reservationId: data?.reservation_id ?? reservationId,
+
+      // 표시용
+      typeLabel: label, // "우산" or "보조배터리"
+      title: label,     // 카드 제목(원하면 item_name 같은 걸로 교체 가능)
       heroImg: isBattery ? powerbankImg : umbrellaImg,
-      cable: !!data?.item?.cable, // 보조배터리면 true/false
+
+      // ✅ 상세 표시값들 (명세/응답 구조가 다르면 여기만 수정하면 됨)
+      cable: !!data?.item?.cable,
       status: statusLabelFromApi(data?.reservation_info?.status),
       pickupOn: data?.reservation_info?.pickup_on || "-",
       depositPaid: data?.deposit?.deposit_paid ? "예" : "아니오",
       depositRefunded: data?.deposit?.deposit_refunded ? "예" : "아니오",
-      reservationId: data?.reservation_id,
     };
-  }, [data]);
+  }, [data, reservationId]);
 
   if (loading) {
     return (
       <main className="MyPageWrap">
         <header className="MPHeader">
-          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
+          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">
+            ←
+          </button>
           <h1 className="MPTitle">대여 상세</h1>
           <div style={{ width: 24 }} />
         </header>
+
         <div style={{ padding: 16 }}>불러오는 중...</div>
         <BottomTab />
       </main>
@@ -78,11 +105,16 @@ export default function MyPageRentDetail() {
     return (
       <main className="MyPageWrap">
         <header className="MPHeader">
-          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
+          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">
+            ←
+          </button>
           <h1 className="MPTitle">대여 상세</h1>
           <div style={{ width: 24 }} />
         </header>
-        <div style={{ padding: 16, color: "#b91c1c" }}>{err || "내역을 찾을 수 없습니다."}</div>
+
+        <div style={{ padding: 16, color: "#b91c1c" }}>
+          {err || "내역을 찾을 수 없습니다."}
+        </div>
         <BottomTab />
       </main>
     );
@@ -91,7 +123,9 @@ export default function MyPageRentDetail() {
   const rows = [
     ["예약 ID", String(ui.reservationId ?? "-")],
     ["품목", ui.title],
-    ...(ui.typeLabel === "보조배터리" ? [["케이블 대여 여부", ui.cable ? "예" : "아니오"]] : []),
+    ...(ui.typeLabel === "보조배터리"
+      ? [["케이블 대여 여부", ui.cable ? "예" : "아니오"]]
+      : []),
     ["대여 상태", ui.status],
     ["픽업 예정일", ui.pickupOn],
     ["보증금 입금 여부", ui.depositPaid],
@@ -101,7 +135,9 @@ export default function MyPageRentDetail() {
   return (
     <main className="MyPageWrap">
       <header className="MPHeader">
-        <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
+        <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">
+          ←
+        </button>
         <h1 className="MPTitle">대여 상세</h1>
         <div style={{ width: 24 }} />
       </header>
