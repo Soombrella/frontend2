@@ -1,12 +1,14 @@
-// src/mypage/MyPageRentDetail.jsx
+// src/mypage/MyPageRentalHistoryDetail.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./mypage.css";
 import BottomTab from "../components/BottomTab";
 import "../components/BottomTab.css";
+
 import umbrellaImg from "../img/umbrella.jpg";
 import powerbankImg from "../img/powerbank.jpg";
-import { getRentalDetailApi } from "../api/mypage"; // ✅ 예약 상세 조회 API
+
+import { getRentalHistoryDetailApi } from "../api/mypage";
 
 const statusLabelFromApi = (s) =>
   s === "RESERVED"
@@ -22,20 +24,19 @@ const statusLabelFromApi = (s) =>
 function normalizeCategory(raw) {
   const c = String(raw || "").trim().toLowerCase();
 
-  // 백엔드가 umbrella / powerbank 로 줄 수도 있고
   if (c === "umbrella") return { type: "umbrella", label: "우산" };
   if (c === "powerbank") return { type: "battery", label: "보조배터리" };
 
-  // 한글로 올 수도 있어서 안전처리
   if (c.includes("우산")) return { type: "umbrella", label: "우산" };
   if (c.includes("배터리") || c.includes("보조"))
     return { type: "battery", label: "보조배터리" };
 
+  // fallback
   return { type: "umbrella", label: raw || "우산" };
 }
 
-export default function MyPageRentDetail() {
-  const { reservationId } = useParams();
+export default function MyPageRentalHistoryDetail() {
+  const { rentalId } = useParams();
   const navigate = useNavigate();
 
   const [data, setData] = useState(null);
@@ -47,8 +48,7 @@ export default function MyPageRentDetail() {
       setLoading(true);
       setErr("");
       try {
-        // ✅ 여기! import랑 호출 함수명 맞추기
-        const d = await getRentalDetailApi(reservationId);
+        const d = await getRentalHistoryDetailApi(rentalId);
         setData(d);
       } catch (e) {
         console.error(e);
@@ -59,30 +59,38 @@ export default function MyPageRentDetail() {
       }
     };
 
-    if (reservationId) run();
-  }, [reservationId, navigate]);
+    if (rentalId) run();
+  }, [rentalId, navigate]);
 
   const ui = useMemo(() => {
     if (!data) return null;
 
+    // 명세 기준(세부 대여 이력 조회):
+    // data: { rental_id, reservation_id, item{...}, rental_info{...}, deposit{...} }
     const catRaw = data?.item?.category_name;
     const { type, label } = normalizeCategory(catRaw);
     const isBattery = type === "battery";
 
     return {
-      reservationId: data?.reservation_id ?? reservationId,
+      rentalId: data?.rental_id ?? rentalId,
+      reservationId: data?.reservation_id ?? null,
 
       typeLabel: label,
       title: label,
       heroImg: isBattery ? powerbankImg : umbrellaImg,
 
       cable: !!data?.item?.cable,
-      status: statusLabelFromApi(data?.reservation_info?.status),
-      pickupOn: data?.reservation_info?.pickup_on || "-",
+
+      status: statusLabelFromApi(data?.rental_info?.status),
+      rentedOn: data?.rental_info?.rented_on || "-",
+      dueOn: data?.rental_info?.due_on || "-",
+      returnedOn: data?.rental_info?.returned_on || "-",
+      proxyReturn: data?.rental_info?.proxy_return ? "예" : "아니오",
+
       depositPaid: data?.deposit?.deposit_paid ? "예" : "아니오",
       depositRefunded: data?.deposit?.deposit_refunded ? "예" : "아니오",
     };
-  }, [data, reservationId]);
+  }, [data, rentalId]);
 
   if (loading) {
     return (
@@ -129,13 +137,21 @@ export default function MyPageRentDetail() {
   }
 
   const rows = [
-    ["예약 ID", String(ui.reservationId ?? "-")],
+    ["대여 ID", String(ui.rentalId ?? "-")],
+    ...(ui.reservationId != null
+      ? [["예약 ID", String(ui.reservationId)]]
+      : []),
     ["품목", ui.title],
     ...(ui.typeLabel === "보조배터리"
       ? [["케이블 대여 여부", ui.cable ? "예" : "아니오"]]
       : []),
+
     ["대여 상태", ui.status],
-    ["픽업 예정일", ui.pickupOn],
+    ["대여일", ui.rentedOn],
+    ["반납예정일", ui.dueOn],
+    ["실제 반납일", ui.returnedOn],
+    ["대리 반납 여부", ui.proxyReturn],
+
     ["보증금 입금 여부", ui.depositPaid],
     ["보증금 환급 여부", ui.depositRefunded],
   ];

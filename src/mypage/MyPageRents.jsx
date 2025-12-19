@@ -9,7 +9,7 @@ import "../components/BottomTab.css";
 import umbrellaImg from "../assets/umbrella.jpg";
 import powerbankImg from "../assets/powerbank.jpg";
 
-import { getMyRentalsApi } from "../api/mypage"; 
+import { getMyRentalsApi } from "../api/mypage";
 
 /* ============== 날짜 유틸 ============== */
 function toDate(dateStr) {
@@ -128,7 +128,32 @@ const byStatus = (a, b) => {
   return 0;
 };
 
+/* ============== 서버 → UI 매핑 유틸 ============== */
+function normalizeCategory(raw) {
+  const c = String(raw || "").trim().toLowerCase();
+  // 백엔드가 umbrella / powerbank 라고 했으니 그걸 우선 처리
+  if (c === "umbrella") return { type: "umbrella", label: "우산" };
+  if (c === "powerbank") return { type: "battery", label: "보조배터리" };
 
+  // 혹시 한글 등 섞이면 안전하게
+  if (c.includes("우산")) return { type: "umbrella", label: "우산" };
+  if (c.includes("배터리") || c.includes("보조"))
+    return { type: "battery", label: "보조배터리" };
+
+  return { type: "umbrella", label: raw || "우산" };
+}
+
+function mapApiStatusToUi(status) {
+  if (!status) return "renting";
+  const s = String(status).toLowerCase();
+
+  if (s.includes("return") || s.includes("반납")) return "returned";
+  if (s.includes("overdue") || s.includes("연체")) return "overdue";
+  if (s.includes("reserve") || s.includes("예약")) return "reserved";
+  if (s.includes("rent") || s.includes("대여")) return "renting";
+
+  return "renting";
+}
 
 export default function MyPageRents() {
   const { user } = useAuth() ?? {};
@@ -141,53 +166,58 @@ export default function MyPageRents() {
   const [confirm, setConfirm] = useState({ open: false, id: null, title: "" });
   const [info, setInfo] = useState({ open: false, title: "알림", text: "" });
 
-useEffect(() => {
-  const fetchRents = async () => {
-    setLoading(true);
-    setErr("");
+  useEffect(() => {
+    const fetchRents = async () => {
+      setLoading(true);
+      setErr("");
 
-    try {
-      const res = await getMyRentalsApi(); // 보통 { success, message, data: [...] }
-      const list = Array.isArray(res?.data) ? res.data : [];
+      try {
+        // ✅ getMyRentalsApi()는 "배열"을 바로 리턴하도록 만들어둔 상태임
+        const list = await getMyRentalsApi(); // => [...]
+        const safeList = Array.isArray(list) ? list : [];
 
-      const mapped = list.map((x) => ({
-        id: String(x.reservation_id),
-        reservation_id: x.reservation_id,
-        item_id: x.item_id,
-        title: x.category_name,
-        type: x.category_name === "우산" ? "umbrella" : "battery",
-        cable: !!x.cable,
+        const mapped = safeList.map((x) => {
+          const { type, label } = normalizeCategory(x.category_name);
 
-        rentDate: x.rented_on ? x.rented_on.slice(0, 10) : null,
-        dueDate: x.due_on ? x.due_on.slice(0, 10) : null,
-        returnDate: x.returned_on ? x.returned_on.slice(0, 10) : null,
+          return {
+            // 목록/키
+            id: String(x.reservation_id ?? x.rental_id ?? ""), // fallback 포함
+            reservation_id: x.reservation_id ?? null,
+            rental_id: x.rental_id ?? null, // ✅ 세부 대여 이력 이동용 (있으면 사용)
 
-        status:
-          x.status === "예약중" ? "reserved" :
-          x.status === "연체중" ? "overdue" :
-          x.status === "반납완료" ? "returned" :
-          x.status === "대여중" ? "renting" :
-          "renting",
+            // 표시용
+            title: label,
+            type,
+            cable: !!x.cable,
 
-        depositPaid: true,
-        depositRefunded: false,
-        thumb: null,
-      }));
+            // 날짜
+            rentDate: x.rented_on ? String(x.rented_on).slice(0, 10) : null,
+            dueDate: x.due_on ? String(x.due_on).slice(0, 10) : null,
+            returnDate: x.returned_on ? String(x.returned_on).slice(0, 10) : null,
 
-      setRents(mapped);
-    } catch (e) {
-      console.error(e);
-      if (e?.status === 401) navigate("/login", { replace: true });
-      else setErr(e?.message || "대여 이력 불러오기에 실패했습니다.");
-      setRents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+            // 상태
+            status: mapApiStatusToUi(x.status),
 
-  fetchRents();
-}, [navigate]);
+            // 기존 UI용
+            depositPaid: true,
+            depositRefunded: false,
+            thumb: null,
+          };
+        });
 
+        setRents(mapped);
+      } catch (e) {
+        console.error(e);
+        if (e?.status === 401) navigate("/login", { replace: true });
+        else setErr(e?.message || "대여 이력 불러오기에 실패했습니다.");
+        setRents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRents();
+  }, [navigate]);
 
   const openCancel = (item) =>
     setConfirm({
@@ -205,10 +235,27 @@ useEffect(() => {
     setInfo({ open: true, title: "알림", text: "취소되었습니다. (현재는 UI만 변경)" });
   };
 
+  /**
+   * ✅ 클릭 시 이동 규칙 (핵심!)
+   * - rental_id 있으면 → 세부 대여 이력(/mypage/rentals/:rentalId)
+   * - rental_id 없고 reservation_id 있으면 → 세부 예약 이력(/mypage/rents/:reservationId)
+   * - 둘 다 없으면 이동 안 함
+   *
+   * (원하면 reserved/returned는 막고 renting/overdue만 허용하는 것도 가능)
+   */
   const goDetailIfNeeded = (item) => {
     const { currentStatus } = computeView(item);
-    if (currentStatus === "renting" || currentStatus === "overdue") {
+
+    // ✅ 네가 “예약중/반납완료는 눌러도 상세 안 들어가게” 유지하고 싶으면 여기 유지
+    if (!(currentStatus === "renting" || currentStatus === "overdue")) return;
+
+    if (item.rental_id) {
+      navigate(`/mypage/rentals/${item.rental_id}`);
+      return;
+    }
+    if (item.reservation_id) {
       navigate(`/mypage/rents/${item.reservation_id}`);
+      return;
     }
   };
 
