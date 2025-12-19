@@ -86,3 +86,34 @@ export async function updateMyInfoApi(payload) {
   // 보통 { success, message, data } 형태
   return json;
 }
+/* =========================
+   대여 이력 조회 (GET /mypage/rentals)
+========================= */
+export async function getMyRentalsApi() {
+  const token = getToken();
+  if (!token) {
+    const err = new Error("NO_TOKEN");
+    err.status = 401;
+    throw err;
+  }
+
+  const res = await fetch(`${BASE}/mypage/rentals`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+
+  const json = await safeJson(res);
+
+  if (!res.ok) {
+    const msg = json?.message || "대여 이력 조회에 실패했습니다.";
+    const err = new Error(msg);
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json?.data ?? []; // 명세: { success, message, data: [...] }
+}
