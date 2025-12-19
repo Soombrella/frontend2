@@ -151,3 +151,33 @@ export async function getRentalDetailApi(reservationId) {
 
   return json?.data;
 }
+// =========================
+// 세부 대여 이력 조회 (GET /mypage/rentals/{rental_id})
+// =========================
+export async function getRentalHistoryDetailApi(rentalId) {
+  const token = getToken();
+  if (!token) {
+    const err = new Error("NO_TOKEN");
+    err.status = 401;
+    throw err;
+  }
+
+  const res = await fetch(`${BASE}/mypage/rentals/${rentalId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+
+  const json = await safeJson(res);
+
+  if (!res.ok) {
+    const err = new Error(json?.message || "세부 대여 이력 조회에 실패했습니다.");
+    err.status = res.status;
+    err.body = json;
+    throw err;
+  }
+
+  return json?.data;
+}
