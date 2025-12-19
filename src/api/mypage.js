@@ -83,9 +83,9 @@ export async function updateMyInfoApi(payload) {
     throw err;
   }
 
-  // 보통 { success, message, data } 형태
-  return json;
+  return json; // { success, message, data }
 }
+
 /* =========================
    대여 이력 조회 (GET /mypage/rentals)
 ========================= */
@@ -115,10 +115,14 @@ export async function getMyRentalsApi() {
     throw err;
   }
 
-  return json?.data ?? []; // 명세: { success, message, data: [...] }
+  // ✅ 너 MyPageRents.jsx에서 res.data를 쓰고 있으니까
+  // 여기서도 "원본 응답(json)"을 그대로 리턴하는 게 제일 안전함
+  // (팀원이 success/message 형태로 주는 케이스 대응)
+  return json; // { success, message, data:[...] }
 }
+
 // =========================
-// 세부 예약 이력 조회 (GET /mypage/rentals/{reservation_id})
+// 세부 예약 이력 조회 (GET /mypage/reservations/{reservation_id})
 // =========================
 export async function getRentalDetailApi(reservationId) {
   const token = getToken();
@@ -128,7 +132,7 @@ export async function getRentalDetailApi(reservationId) {
     throw err;
   }
 
-  const res = await fetch(`${BASE}/mypage/rentals/${reservationId}`, {
+  const res = await fetch(`${BASE}/mypage/reservations/${reservationId}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -145,5 +149,5 @@ export async function getRentalDetailApi(reservationId) {
     throw err;
   }
 
-  return json?.data; // { success, message, data: {...} }
+  return json?.data;
 }
