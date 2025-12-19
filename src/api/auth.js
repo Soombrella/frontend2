@@ -1,130 +1,191 @@
 // src/api/auth.js
-const BASE = process.env.REACT_APP_API_BASE_URL || "";
+import axios from "axios";
 
-/** -------------------------
- * 공통: 응답 파싱/에러 처리
- * ------------------------- */
-async function readJsonOrText(res) {
-  const text = await res.text();
+export const TOKEN_KEY = "sb_token";
+export const USER_KEY = "sb_user";
+
+const BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://13.48.133.70:8000";
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+/* ======================
+ *  Utils
+ * ====================== */
+
+// FastAPI / Pydantic 에러(detail: [{loc,msg,type,input}])까지 문자열로 정리
+function normalizeErrorMessage(data, fallback = "요청 중 오류가 발생했습니다.") {
+  if (!data) return fallback;
+
+  // 1) detail이 문자열
+  if (typeof data.detail === "string") return data.detail;
+
+  // 2) detail이 배열 (pydantic validation error)
+  if (Array.isArray(data.detail)) {
+    const msgs = data.detail
+      .map((d) => {
+        if (!d) return null;
+        if (typeof d === "string") return d;
+        if (typeof d.msg === "string") return d.msg;
+        return JSON.stringify(d);
+      })
+      .filter(Boolean);
+
+    if (msgs.length) return msgs.join("\n");
+  }
+
+  // 3) message 필드
+  if (typeof data.message === "string") return data.message;
+
+  // 4) 그 외 객체면 stringify
   try {
-    return JSON.parse(text);
+    return JSON.stringify(data);
   } catch {
-    return { message: text };
+    return fallback;
   }
 }
 
-function makeHttpError(res, json) {
-  const msg =
-    json?.message ||
-    (res.status >= 500
-      ? "서버 오류가 발생했습니다."
-      : "요청에 실패했습니다.");
-  const err = new Error(msg);
-  err.status = res.status;
-  err.body = json;
-  return err;
-}
+/* ======================
+ *  Interceptors
+ * ====================== */
 
-async function postJson(path, body) {
-  const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
+// 요청마다 JWT 자동 첨부
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// 공통 에러 처리: err.message를 "항상 문자열"로 보장
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    const msg =
+      normalizeErrorMessage(data, null) ||
+      (typeof err?.message === "string" ? err.message : null) ||
+      "요청 중 오류가 발생했습니다.";
+
+    // 401이면 로컬 토큰/유저 제거
+    if (status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
+
+    // ✅ React에서 안전하게 쓰도록 "Error"로 reject
+    const e = new Error(msg);
+    e.status = status;
+    e.data = data;
+    e.raw = err;
+    return Promise.reject(e);
+  }
+);
+
+/* ======================
+ *  Auth APIs
+ * ====================== */
+
+// 회원가입
+export const signupApi = async (payload) => {
+  // payload: { name, department, student_no, phone, password, email, account_bank, account_num ... }
+  const res = await api.post("/auth/register", payload);
+  return res.data;
+};
+
+// 로그인
+// - (student_no, password) 또는 ({ student_no, password }) 둘 다 지원
+// - Login.jsx에서 const { token, user } = await loginApi(username, password) 가능
+export const loginApi = async (studentNoOrPayload, passwordOpt) => {
+  const payload =
+    typeof studentNoOrPayload === "string"
+      ? { student_no: studentNoOrPayload, password: passwordOpt }
+      : studentNoOrPayload;
+
+  const res = await api.post("/auth/login", payload);
+
+  const data = res?.data?.data || {};
+  const token = data?.token;
+
+  // 서버가 주는 사용자 정보(명세에 따라 data에 member_id 등 들어있음)
+  const user = {
+    member_id: data.member_id,
+    student_no: data.student_no,
+    username: data.student_no, // 프론트에서 username 쓰면 대응
+    name: data.name,
+    dept: data.department, // 프론트에서 dept 쓰면 대응
+    department: data.department,
+    email: data.email,
+    is_admin: data.is_admin,
+  };
+
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
+  return { token, user, raw: res.data };
+};
+
+// 로그아웃
+// (명세상 JWT는 서버 저장 X → 프론트에서 토큰 삭제가 핵심)
+// 서버에 /auth/logout이 있으면 호출, 없어도 토큰 삭제는 수행
+export const logoutApi = async () => {
+  try {
+    const res = await api.post("/auth/logout");
+    return res.data;
+  } catch (e) {
+    // /auth/logout이 없어서 404여도 프론트 로그아웃은 진행
+    return { success: true, message: "logout (client only)" };
+  } finally {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
+};
+
+// 회원탈퇴
+// swagger: DELETE /auth/withdraw, body: { current_password: "..." } + Authorization 필요
+export const withdrawApi = async ({ current_password }) => {
+  const res = await api.delete("/auth/withdraw", {
+    data: { current_password },
   });
 
-  const json = await readJsonOrText(res);
-  if (!res.ok) throw makeHttpError(res, json);
-  return json;
-}
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
 
-/** -------------------------
- * 로그인 (POST /auth/login)
- * Request: { student_no, password }
- * Response: { success, message, data: { token, member_id, student_no, name, department, email, is_admin } }
- * ------------------------- */
-export async function loginApi(student_no, password) {
-  const json = await postJson("/auth/login", { student_no, password });
+  return res.data;
+};
 
-  const data = json?.data;
-  if (!data?.token) throw new Error("로그인 응답에 token이 없습니다.");
+/* ======================
+ *  비밀번호 찾기
+ * ====================== */
 
-  return {
-    token: data.token,
-    user: {
-      member_id: data.member_id,
-      username: data.student_no,
-      name: data.name,
-      dept: data.department,
-      email: data.email,
-      is_admin: data.is_admin,
-    },
-  };
-}
+// 인증 코드 요청
+export const findPwRequestApi = async (payload) => {
+  // POST /auth/find-pw/request
+  // payload 예: { student_no, email } (명세대로)
+  const res = await api.post("/auth/find-pw/request", payload);
+  return res.data;
+};
 
-/** -------------------------
- * 회원가입 (POST /auth/register)
- * ------------------------- */
-export async function signupApi(payload) {
-  // 스웨거에 /auth/register, 노션에 /auth/signup 같이 보일 수도 있어서
-  // 우선 register로 시도하고 404/405면 signup으로 재시도 (둘 다 "네가 준 후보"일 때만)
-  try {
-    return await postJson("/auth/register", payload);
-  } catch (e) {
-    if (e?.status === 404 || e?.status === 405) {
-      return await postJson("/auth/signup", payload);
-    }
-    throw e;
-  }
-}
+// 인증 코드 검증
+export const findPwVerifyApi = async (payload) => {
+  // POST /auth/find-pw/verify
+  // payload 예: { student_no, code }
+  const res = await api.post("/auth/find-pw/verify", payload);
+  return res.data;
+};
 
-/** -------------------------
- * 비밀번호 찾기 - 인증번호 요청
- * 후보 엔드포인트(네가 준 것들만):
- * 1) POST /auth/find-pw/request   (스웨거)
- * 2) POST /auth/password/email   (노션)
- * Request: { email }
- * ------------------------- */
-export async function findPwRequestApi(email) {
-  const body = { email };
+// 비밀번호 변경
+export const changePasswordApi = async (payload) => {
+  // PATCH /auth/password
+  // payload 예: { current_password, new_password } (명세대로)
+  const res = await api.patch("/auth/password", payload);
+  return res.data;
+};
 
-  // 1) 스웨거
-  try {
-    return await postJson("/auth/find-pw/request", body);
-  } catch (e) {
-    // 404/405면 다른 후보로 폴백
-    if (e?.status === 404 || e?.status === 405) {
-      return await postJson("/auth/password/email", body);
-    }
-    // 500이면 서버 문제라 폴백해도 의미 없지만, 혹시 엔드포인트만 다른 경우 대비해 폴백도 한 번 더
-    try {
-      return await postJson("/auth/password/email", body);
-    } catch {
-      throw e;
-    }
-  }
-}
-
-/** -------------------------
- * 비밀번호 찾기 - 인증번호 검증
- * 후보 엔드포인트(네가 준 것들만):
- * 1) POST /auth/find-pw/verify    (스웨거)
- * 2) POST /auth/password/verify   (노션)
- * Request: { email, code }
- * ------------------------- */
-export async function findPwVerifyApi(email, code) {
-  const body = { email, code };
-
-  // 1) 스웨거
-  try {
-    return await postJson("/auth/find-pw/verify", body);
-  } catch (e) {
-    if (e?.status === 404 || e?.status === 405) {
-      return await postJson("/auth/password/verify", body);
-    }
-    try {
-      return await postJson("/auth/password/verify", body);
-    } catch {
-      throw e;
-    }
-  }
-}
+export default api;

@@ -69,14 +69,7 @@ root.render(
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/mypage/rents/:id"
-            element={
-              <ProtectedRoute>
-                <MyPageRentDetail />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/mypage/rents/:reservationId" element={<ProtectedRoute><MyPageRentDetail /></ProtectedRoute>} />
 
           <Route path="/admin" element={<AdminHome />} />
           <Route path="/admin/stock" element={<AdminStock />} />
