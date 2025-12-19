@@ -9,7 +9,7 @@ import "../components/BottomTab.css";
 import umbrellaImg from "../assets/umbrella.jpg";
 import powerbankImg from "../assets/powerbank.jpg";
 
-import { getMyRentalsApi } from "../api/mypage"; // ✅ 추가
+import { getMyRentalsApi } from "../api/mypage"; 
 
 /* ============== 날짜 유틸 ============== */
 function toDate(dateStr) {
@@ -128,51 +128,7 @@ const byStatus = (a, b) => {
   return 0;
 };
 
-/* =========================
-   ✅ 서버 데이터 → 화면용 데이터 변환
-   (네가 올린 명세 기준 필드)
-   reservation_id, category_name, status, cable,
-   rented_on, due_on, returned_on
-========================= */
-function mapApiStatusToUi(status) {
-  if (!status) return "renting";
 
-  const s = String(status).toLowerCase();
-
-  // 서버가 영문/한글 어떤 걸 보내도 최대한 흡수
-  if (s.includes("return") || s.includes("반납")) return "returned";
-  if (s.includes("overdue") || s.includes("연체")) return "overdue";
-  if (s.includes("reserve") || s.includes("예약")) return "reserved";
-  if (s.includes("rent") || s.includes("대여")) return "renting";
-
-  // 모르면 일단 대여중으로
-  return "renting";
-}
-
-function mapApiItemToUi(r) {
-  const category = r?.category_name || "";
-  const type = category.includes("우산") ? "umbrella" : "battery";
-
-  return {
-    id: String(r?.reservation_id ?? ""), // ✅ key/상세 이동용
-    type,
-    title: type === "umbrella" ? "우산" : "보조배터리",
-    status: mapApiStatusToUi(r?.status),
-
-    // 날짜 (명세에서 yyyy-mm-dd 형태)
-    rentDate: r?.rented_on || null,
-    dueDate: r?.due_on || null,
-    returnDate: r?.returned_on || null,
-
-    // 추가 표시용
-    cable: !!r?.cable,
-
-    // 기존 UI에서 쓰는 값 유지 (없으면 기본)
-    depositPaid: true,
-    depositRefunded: false,
-    thumb: null,
-  };
-}
 
 export default function MyPageRents() {
   const { user } = useAuth() ?? {};
@@ -185,30 +141,53 @@ export default function MyPageRents() {
   const [confirm, setConfirm] = useState({ open: false, id: null, title: "" });
   const [info, setInfo] = useState({ open: false, title: "알림", text: "" });
 
-  // ✅ 여기서 “로컬 목데이터” 제거하고 API 호출
-  useEffect(() => {
-    const fetchRentals = async () => {
-      setLoading(true);
-      setErr("");
+useEffect(() => {
+  const fetchRents = async () => {
+    setLoading(true);
+    setErr("");
 
-      try {
-        const data = await getMyRentalsApi(); // ✅ GET /mypage/rentals
-        const mapped = (Array.isArray(data) ? data : []).map(mapApiItemToUi);
-        setRents(mapped);
-      } catch (e) {
-        console.error(e);
-        if (e?.status === 401) {
-          navigate("/login", { replace: true });
-        } else {
-          setErr(e?.message || "대여 이력 불러오기에 실패했습니다.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const res = await getMyRentalsApi(); // 보통 { success, message, data: [...] }
+      const list = Array.isArray(res?.data) ? res.data : [];
 
-    fetchRentals();
-  }, [navigate]);
+      const mapped = list.map((x) => ({
+        id: String(x.reservation_id),
+        reservation_id: x.reservation_id,
+        item_id: x.item_id,
+        title: x.category_name,
+        type: x.category_name === "우산" ? "umbrella" : "battery",
+        cable: !!x.cable,
+
+        rentDate: x.rented_on ? x.rented_on.slice(0, 10) : null,
+        dueDate: x.due_on ? x.due_on.slice(0, 10) : null,
+        returnDate: x.returned_on ? x.returned_on.slice(0, 10) : null,
+
+        status:
+          x.status === "예약중" ? "reserved" :
+          x.status === "연체중" ? "overdue" :
+          x.status === "반납완료" ? "returned" :
+          x.status === "대여중" ? "renting" :
+          "renting",
+
+        depositPaid: true,
+        depositRefunded: false,
+        thumb: null,
+      }));
+
+      setRents(mapped);
+    } catch (e) {
+      console.error(e);
+      if (e?.status === 401) navigate("/login", { replace: true });
+      else setErr(e?.message || "대여 이력 불러오기에 실패했습니다.");
+      setRents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRents();
+}, [navigate]);
+
 
   const openCancel = (item) =>
     setConfirm({
@@ -229,7 +208,7 @@ export default function MyPageRents() {
   const goDetailIfNeeded = (item) => {
     const { currentStatus } = computeView(item);
     if (currentStatus === "renting" || currentStatus === "overdue") {
-      navigate(`/mypage/rents/${item.id}`);
+      navigate(`/mypage/rents/${item.reservation_id}`);
     }
   };
 

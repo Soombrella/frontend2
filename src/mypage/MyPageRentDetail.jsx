@@ -1,152 +1,116 @@
 // src/mypage/MyPageRentDetail.jsx
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./mypage.css";
 import BottomTab from "../components/BottomTab";
 import "../components/BottomTab.css";
 import umbrellaImg from "../img/umbrella.jpg";
 import powerbankImg from "../img/powerbank.jpg";
+import { getRentalDetailApi } from "../api/mypage";
 
-/* ---------- 로컬 저장소에서 항목 조회 ---------- */
-function getById(id) {
-  const list = JSON.parse(localStorage.getItem("sb_rents") || "[]");
-  return list.find((x) => x.id === id);
-}
+ const statusLabelFromApi = (s) =>
+  s === "RESERVED" ? "예약중"
+  : s === "RENTING" ? "대여중"
+  : s === "OVERDUE" ? "연체중"
+  : s === "RETURNED" ? "반납완료"
+  : s || "-";
 
-/* ---------- 날짜 유틸 ---------- */
-function toDate(dateStr) { return new Date(dateStr + "T00:00:00"); }
-function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function fmtYYYYMMDD(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-function startOfToday() { const t = new Date(); t.setHours(0,0,0,0); return t; }
-
-/** 규칙: "대여일 포함 3일 이내" → 마감일 = rentDate + 2일 */
-function getDerivedDueStr(item) {
-  if (!item?.rentDate) return item?.dueDate ?? null;
-  const d = addDays(toDate(item.rentDate), 2);
-  return fmtYYYYMMDD(d);
-}
-
-function daysTo(dateStr){
-  if (!dateStr) return 0;
-  const today = startOfToday();
-  const d = toDate(dateStr);
-  return Math.floor((d - today) / (1000*60*60*24));
-}
-function overdueDays(dateStr){
-  if (!dateStr) return 0;
-  const today = startOfToday();
-  const d = toDate(dateStr);
-  const diff = Math.floor((today - d) / (1000*60*60*24));
-  return Math.max(0, diff);
-}
-
-const statusLabel = (s) =>
-  s === "renting"  ? "대여중"   :
-  s === "overdue"  ? "연체중"   :
-  s === "returned" ? "반납완료" :
-  s === "reserved" ? "예약중"   : s;
-
-/** 화면 표시용 상태/배지 계산 */
-function computeView(item){
-  const baseStatus    = item.status || "renting";
-  const returned      = baseStatus === "returned";
-  const derivedDueStr = getDerivedDueStr(item);
-
-  let currentStatus = baseStatus;
-  if (!returned && derivedDueStr){
-    const isOverdue = startOfToday() > toDate(derivedDueStr);
-    if (isOverdue) currentStatus = "overdue";
-  }
-
-  // 배지 색상 클래스 & 텍스트
-  let badgeClass = "badge-blue";
-  if (currentStatus === "returned") badgeClass = "badge-gray";
-  if (currentStatus === "overdue")  badgeClass = "badge-red";
-  if (currentStatus === "reserved") badgeClass = "badge-green";
-  const badgeText = statusLabel(currentStatus);
-
-  // D-day
-  let dday = "-";
-  if (currentStatus === "overdue"){
-    dday = `D+${overdueDays(derivedDueStr)}`;
-  } else if (currentStatus === "renting"){
-    const left = daysTo(derivedDueStr);
-    dday = left >= 0 ? `D-${left}` : `D+${Math.abs(left)}`;
-  }
-
-  return { currentStatus, derivedDueStr, badgeText, badgeClass, dday };
-}
-
-export default function MyPageRentDetail(){
-  const { id } = useParams();
+export default function MyPageRentDetail() {
+  const { reservationId } = useParams();
   const navigate = useNavigate();
-  const item = useMemo(() => getById(id), [id]);
 
-  if (!item){
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true);
+      setErr("");
+      try {
+        const d = await getRentalDetailApi(reservationId);
+        setData(d);
+      } catch (e) {
+        console.error(e);
+        if (e?.status === 401) navigate("/login", { replace: true });
+        else setErr(e?.message || "상세 조회 실패");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (reservationId) run();
+  }, [reservationId, navigate]);
+
+  const ui = useMemo(() => {
+    if (!data) return null;
+
+    const category = data?.item?.category_name; // "우산" or "보조배터리"
+    const isBattery = category === "보조배터리";
+
+    return {
+      title: category || "대여 상세",
+      typeLabel: isBattery ? "보조배터리" : "우산",
+      heroImg: isBattery ? powerbankImg : umbrellaImg,
+      cable: !!data?.item?.cable, // 보조배터리면 true/false
+      status: statusLabelFromApi(data?.reservation_info?.status),
+      pickupOn: data?.reservation_info?.pickup_on || "-",
+      depositPaid: data?.deposit?.deposit_paid ? "예" : "아니오",
+      depositRefunded: data?.deposit?.deposit_refunded ? "예" : "아니오",
+      reservationId: data?.reservation_id,
+    };
+  }, [data]);
+
+  if (loading) {
     return (
       <main className="MyPageWrap">
         <header className="MPHeader">
           <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
           <h1 className="MPTitle">대여 상세</h1>
-          <div style={{ width:24 }} />
+          <div style={{ width: 24 }} />
         </header>
-        <div style={{ padding:16 }}>내역을 찾을 수 없습니다.</div>
+        <div style={{ padding: 16 }}>불러오는 중...</div>
         <BottomTab />
       </main>
     );
   }
 
-  const { currentStatus, derivedDueStr, badgeText, badgeClass, dday } = computeView(item);
-
-  // 이미지 / 라벨
-  const typeLabel = item.type === "umbrella" ? "우산" : "보조배터리";
-  const heroImg   = item.thumb || (item.type === "umbrella" ? umbrellaImg : powerbankImg);
-
-  // 상세 정보 행
-  const rows = [
-    ["품목", item.title],
-  ];
-
-  // 🔌 보조배터리일 때만 케이블 여부 추가
-  if (item.type === "battery") {
-    // item.cable === true/false 라고 가정 (없으면 기본 "아니오")
-    const cable = item.cable === true;
-    rows.push(["케이블 대여 여부", cable ? "예" : "아니오"]);
+  if (err || !ui) {
+    return (
+      <main className="MyPageWrap">
+        <header className="MPHeader">
+          <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
+          <h1 className="MPTitle">대여 상세</h1>
+          <div style={{ width: 24 }} />
+        </header>
+        <div style={{ padding: 16, color: "#b91c1c" }}>{err || "내역을 찾을 수 없습니다."}</div>
+        <BottomTab />
+      </main>
+    );
   }
 
-  rows.push(
-    ["대여 상태", statusLabel(currentStatus)],
-    ["대여일", item.rentDate || "-"],
-    ["반납일", derivedDueStr || "-"], // 대여일 + 2일
-    ...(currentStatus === "renting" || currentStatus === "overdue" ? [["남은/경과", dday]] : []),
-    ["보증금 입금 여부", item.depositPaid ? "예" : "아니오"],
-    ["보증금 환급 여부", item.depositRefunded ? "예" : "아니오"],
-  );
+  const rows = [
+    ["예약 ID", String(ui.reservationId ?? "-")],
+    ["품목", ui.title],
+    ...(ui.typeLabel === "보조배터리" ? [["케이블 대여 여부", ui.cable ? "예" : "아니오"]] : []),
+    ["대여 상태", ui.status],
+    ["픽업 예정일", ui.pickupOn],
+    ["보증금 입금 여부", ui.depositPaid],
+    ["보증금 환급 여부", ui.depositRefunded],
+  ];
 
   return (
     <main className="MyPageWrap">
       <header className="MPHeader">
         <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">←</button>
         <h1 className="MPTitle">대여 상세</h1>
-        <div style={{ width:24 }} />
+        <div style={{ width: 24 }} />
       </header>
 
       <section className="Card detail">
-        {/* 썸네일 + 상태/디데이 배지 */}
         <div className="DetailThumb">
-          <img className="DetailImg" src={heroImg} alt={typeLabel} loading="lazy" />
-          <div className={`StateBadge ${badgeClass}`}>{badgeText}</div>
-          {(currentStatus === "renting" || currentStatus === "overdue") && (
-            <div className={`DueBadge ${badgeClass}`}>{dday}</div>
-          )}
+          <img className="DetailImg" src={ui.heroImg} alt={ui.typeLabel} loading="lazy" />
         </div>
 
-        {/* 상세 정보 리스트 */}
         <div className="DetailList">
           {rows.map(([k, v]) => (
             <div className="DetailRow" key={k}>

@@ -1,7 +1,6 @@
 // src/mypage/MyPage.jsx
 import { useEffect, useRef, useState } from "react";
-import { getMyInfoApi } from "../api/mypage";
-import { updateMyInfoApi } from "../api/mypage";
+import { getMyInfoApi, updateMyInfoApi } from "../api/mypage";
 import "./mypage.css";
 import { useNavigate, Link } from "react-router-dom";
 import BottomTab from "../components/BottomTab";
@@ -9,6 +8,7 @@ import "../components/BottomTab.css";
 import SimpleModal from "../components/SimpleModal";
 import { useAuth } from "../auth/AuthContext";
 import { MAJORS } from "../data/majors";
+import { logoutApi, withdrawApi } from "../api/auth";
 
 // 비밀번호 변경용 모의 이메일 코드 저장 키
 const CODE_KEY = "sb_pwd_code";
@@ -39,25 +39,27 @@ export default function MyPage() {
     const fetchMyInfo = async () => {
       try {
         setErr("");
-        // ✅ getMyInfoApi는 "유저 객체"를 바로 리턴함 (res.data 아님)
         const d = await getMyInfoApi();
 
-        // AuthContext에 서버 데이터 반영
         if (typeof updateUser === "function") {
           await updateUser(d);
         }
 
-        // 프로필 수정 폼 동기화
         setForm({
           email: d.email || "",
           dept: d.dept || "",
         });
       } catch (e) {
         console.error(e);
-        if (e?.status === 401) {
+
+        // ✅ auth.js 인터셉터가 {status, message, raw} 로 reject 하는 형태도 고려
+        const status = e?.status ?? e?.raw?.response?.status ?? e?.response?.status;
+        const message = e?.message ?? e?.raw?.response?.data?.detail;
+
+        if (status === 401) {
           navigate("/login", { replace: true });
         } else {
-          setErr(e?.message || "내 정보 불러오기에 실패했습니다.");
+          setErr(message || "내 정보 불러오기에 실패했습니다.");
         }
       }
     };
@@ -79,42 +81,42 @@ export default function MyPage() {
   const isEmail = (val) => /\S+@\S+\.\S+/.test(val);
 
   const saveProfile = async () => {
-  setErr("");
+    setErr("");
 
-  if (!isEmail(form.email)) {
-    setErr("이메일 형식이 올바르지 않습니다.");
-    return;
-  }
-  if (!form.dept.trim()) {
-    setErr("학과(전공)를 선택하세요.");
-    return;
-  }
-
-  setSaving(true);
-  try {
-    // ✅ 백엔드 명세에 맞게 payload 구성 (키 이름은 명세대로!)
-    const payload = {
-      email: form.email.trim(),
-      department: form.dept,
-      // 계좌까지 수정이면 account_bank / account_num 같은 것도 여기에 추가
-    };
-
-    await updateMyInfoApi(payload);
-
-    // ✅ 성공하면 프론트 상태도 갱신
-    if (typeof updateUser === "function") {
-      updateUser({ email: payload.email, dept: payload.department });
+    if (!isEmail(form.email)) {
+      setErr("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
+    if (!form.dept.trim()) {
+      setErr("학과(전공)를 선택하세요.");
+      return;
     }
 
-    setEditOpen(false);
-    alert("저장 완료");
-  } catch (e) {
-    console.error(e);
-    setErr(e?.message || "저장 중 오류가 발생했습니다.");
-  } finally {
-    setSaving(false);
-  }
-};
+    setSaving(true);
+    try {
+      // ✅ 백엔드 명세 키에 맞춰 payload 구성
+      const payload = {
+        email: form.email.trim(),
+        department: form.dept,
+      };
+
+      await updateMyInfoApi(payload);
+
+      // ✅ 프론트 상태 갱신
+      if (typeof updateUser === "function") {
+        updateUser({ ...user, email: payload.email, dept: payload.department });
+      }
+
+      setEditOpen(false);
+      alert("저장 완료");
+    } catch (e) {
+      console.error(e);
+      const message = e?.message ?? e?.raw?.response?.data?.detail;
+      setErr(message || "저장 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   /* ---------------- 비밀번호 변경(모의 이메일 인증) ---------------- */
   const [pwModalOpen, setPwModalOpen] = useState(false);
@@ -168,10 +170,96 @@ export default function MyPage() {
     }
   };
 
+  /* ---------------- 로그아웃 ---------------- */
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  const doLogout = async () => {
+    if (logoutLoading) return;
+    setLogoutLoading(true);
+
+    try {
+      // 백엔드 logout이 없어도(또는 404/500이어도) 프론트 토큰 삭제가 핵심
+      try {
+        await logoutApi();
+      } catch (e) {
+        console.warn("logoutApi ignored:", e?.status ?? e?.raw?.response?.status);
+      }
+
+      // AuthContext 초기화(구현에 따라 안전하게)
+      if (typeof updateUser === "function") {
+        try {
+          updateUser(null);
+        } catch {
+          updateUser({});
+        }
+      }
+
+      navigate("/login", { replace: true });
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
+
+  /* ---------------- 회원탈퇴 ---------------- */
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawPw, setWithdrawPw] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  const doWithdraw = async () => {
+    if (!withdrawPw.trim()) {
+      alert("현재 비밀번호를 입력해 주세요.");
+      return;
+    }
+
+    const ok = window.confirm("정말 회원 탈퇴하시겠습니까? (복구 불가)");
+    if (!ok) return;
+
+    setWithdrawing(true);
+    try {
+      // ✅ auth.js 스펙에 맞게 객체로 전달해야 함
+      const res = await withdrawApi({ current_password: withdrawPw.trim() });
+
+      // 보통 {success, message} 형태
+      if (res?.success) {
+        if (typeof updateUser === "function") {
+          try {
+            updateUser(null);
+          } catch {
+            updateUser({});
+          }
+        }
+        alert(res?.message || "회원 탈퇴 완료");
+        navigate("/login", { replace: true });
+      } else {
+        alert(res?.message || "회원 탈퇴에 실패했습니다.");
+      }
+    } catch (e) {
+      // ✅ auth.js 인터셉터 reject 형태에 맞춘 처리
+      const status = e?.status ?? e?.raw?.response?.status ?? e?.response?.status;
+      const msg =
+        e?.message ??
+        e?.raw?.response?.data?.detail ??
+        e?.raw?.response?.data?.message;
+
+      if (status === 401) alert("로그인이 만료되었어요. 다시 로그인해 주세요.");
+      else if (status === 400) alert(msg || "비밀번호가 올바르지 않습니다.");
+      else if (status === 404) alert("계정을 찾을 수 없습니다.");
+      else alert(msg || "회원 탈퇴 중 오류가 발생했습니다.");
+    } finally {
+      setWithdrawing(false);
+      setWithdrawPw("");
+      setWithdrawOpen(false);
+    }
+  };
+
   return (
     <main className="MyPageWrap">
       <header className="MPHeader">
-        <button className="BackBtn" onClick={() => navigate(-1)} aria-label="뒤로가기">
+        <button
+          className="BackBtn"
+          onClick={() => navigate(-1)}
+          aria-label="뒤로가기"
+        >
           ←
         </button>
         <Link to="/" className="MPTitle MPBrandLink">
@@ -181,34 +269,62 @@ export default function MyPage() {
       </header>
 
       <section className="ProfileCard">
-        <div className="Avatar" aria-hidden>👤</div>
+        <div className="Avatar" aria-hidden>
+          👤
+        </div>
         <div className="Who">
           <div className="Nick">
-            {user?.name || "사용자"} {user?.username ? `(${user.username})` : ""}
+            {user?.name || "사용자"}{" "}
+            {user?.username ? `(${user.username})` : ""}
           </div>
           <div className="Meta">{user?.dept || "전공 미입력"}</div>
         </div>
       </section>
 
       <nav className="Tabs">
-        <button className="Tab active" type="button">계정 정보</button>
-        <button className="Tab" type="button" onClick={() => navigate("/mypage/rents")}>
+        <button className="Tab active" type="button">
+          계정 정보
+        </button>
+        <button
+          className="Tab"
+          type="button"
+          onClick={() => navigate("/mypage/rents")}
+        >
           대여 목록
         </button>
-        <button className="Tab" type="button" onClick={() => navigate("/mypage/guide")}>
+        <button
+          className="Tab"
+          type="button"
+          onClick={() => navigate("/mypage/guide")}
+        >
           이용 안내
         </button>
       </nav>
 
       <section className="Card">
         <label className="Label">아이디</label>
-        <input className="Input" value={v(user?.username)} readOnly placeholder="-" />
+        <input
+          className="Input"
+          value={v(user?.username)}
+          readOnly
+          placeholder="-"
+        />
 
         <label className="Label">이름</label>
-        <input className="Input" value={v(user?.name)} readOnly placeholder="-" />
+        <input
+          className="Input"
+          value={v(user?.name)}
+          readOnly
+          placeholder="-"
+        />
 
         <label className="Label">이메일</label>
-        <input className="Input" value={v(user?.email)} readOnly placeholder="-" />
+        <input
+          className="Input"
+          value={v(user?.email)}
+          readOnly
+          placeholder="-"
+        />
 
         <label className="Label">전공</label>
         <div className="SelectWrap">
@@ -225,6 +341,7 @@ export default function MyPage() {
         <button className="Btn ghost" type="button" onClick={openEdit}>
           프로필 수정
         </button>
+
         <button
           className="Btn primary"
           type="button"
@@ -236,8 +353,32 @@ export default function MyPage() {
         >
           비밀번호 변경
         </button>
+
+        {/* 로그아웃 */}
+        <button
+          className="Btn ghost"
+          type="button"
+          onClick={doLogout}
+          disabled={logoutLoading}
+        >
+          {logoutLoading ? "로그아웃 중..." : "로그아웃"}
+        </button>
+
+        {/* 회원탈퇴 */}
+        <button
+          className="Btn danger"
+          type="button"
+          onClick={() => {
+            setWithdrawPw("");
+            setWithdrawOpen(true);
+          }}
+          disabled={withdrawing}
+        >
+          회원탈퇴
+        </button>
       </div>
 
+      {/* 프로필 수정 모달 */}
       <SimpleModal
         open={editOpen}
         title="프로필 수정"
@@ -247,7 +388,9 @@ export default function MyPage() {
         disabled={saving}
       >
         <div className="Card" style={{ gap: 10 }}>
-          <label className="Label" htmlFor="email">이메일</label>
+          <label className="Label" htmlFor="email">
+            이메일
+          </label>
           <input
             id="email"
             name="email"
@@ -260,7 +403,9 @@ export default function MyPage() {
             disabled={saving}
           />
 
-          <label className="Label" htmlFor="dept">학과(전공)</label>
+          <label className="Label" htmlFor="dept">
+            학과(전공)
+          </label>
           <div className="SelectWrap">
             <select
               id="dept"
@@ -272,7 +417,9 @@ export default function MyPage() {
             >
               <option value="">전공 선택</option>
               {MAJORS.map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
             <span className="Chevron">▾</span>
@@ -282,6 +429,7 @@ export default function MyPage() {
         </div>
       </SimpleModal>
 
+      {/* 비밀번호 변경 모달 */}
       <SimpleModal
         open={pwModalOpen}
         title="비밀번호 변경"
@@ -298,13 +446,20 @@ export default function MyPage() {
             등록된 이메일로 인증번호를 보내 드립니다.
           </p>
 
-          <button type="button" className="Btn ghost" onClick={sendCode} disabled={sending}>
+          <button
+            type="button"
+            className="Btn ghost"
+            onClick={sendCode}
+            disabled={sending}
+          >
             {sending ? "발송 중..." : "인증번호 보내기"}
           </button>
 
           {sentMsg && <small style={{ color: "#0b2d57" }}>{sentMsg}</small>}
 
-          <label className="Label" htmlFor="code">인증번호</label>
+          <label className="Label" htmlFor="code">
+            인증번호
+          </label>
           <input
             id="code"
             className="Input"
@@ -321,6 +476,36 @@ export default function MyPage() {
         </div>
       </SimpleModal>
 
+      {/* 회원탈퇴 모달 */}
+      <SimpleModal
+        open={withdrawOpen}
+        title="회원탈퇴"
+        onClose={() => !withdrawing && setWithdrawOpen(false)}
+        onConfirm={doWithdraw}
+        confirmText={withdrawing ? "처리 중..." : "탈퇴하기"}
+        disabled={withdrawing}
+      >
+        <div className="Card" style={{ gap: 10 }}>
+          <p className="Note" style={{ margin: 0, color: "#b91c1c" }}>
+            회원 탈퇴 시 계정이 삭제되며 복구할 수 없습니다.
+          </p>
+
+          <label className="Label" htmlFor="withdrawPw">
+            현재 비밀번호
+          </label>
+          <input
+            id="withdrawPw"
+            type="password"
+            className="Input"
+            placeholder="현재 비밀번호 입력"
+            value={withdrawPw}
+            onChange={(e) => setWithdrawPw(e.target.value)}
+            disabled={withdrawing}
+          />
+        </div>
+      </SimpleModal>
+
       <BottomTab />
     </main>
-  );}
+  );
+}
