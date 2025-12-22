@@ -1,3 +1,5 @@
+// src/admin/AdminBottomTab.jsx
+
 import { Link, useLocation } from "react-router-dom";
 import "./AdminBottomTab.css";
 

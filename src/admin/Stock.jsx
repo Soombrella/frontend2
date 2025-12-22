@@ -1,6 +1,13 @@
+// src/admin/Stock.jsx
 import React, { useMemo, useState } from "react";
 import "./Stock.css";
 import AdminBottomTab from "./AdminBottomTab";
+import { useEffect } from "react";
+import {
+  getManageItemsApi,
+  updateManageItemApi,
+  deleteManageItemApi,
+} from "../api/manage";
 
 /** 상태 옵션 */
 const STATUS_LIST = ["사용가능", "대여중", "반납완료", "분실 및 고장"];
@@ -32,9 +39,30 @@ function pillClass(status) {
 }
 
 export default function Stock() {
-  const [rows, setRows] = useState(SEED);
+  const [rows, setRows] = useState([]);
   const [itemFilter, setItemFilter] = useState("전체");
   const [statusFilter, setStatusFilter] = useState("전체");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getManageItemsApi();
+        const list = res?.data ?? res ?? [];
+
+        const mapped = list.map((x) => ({
+          id: x.item_id ?? x.id,
+          itemType: x.item_type ?? x.itemType ?? "우산",
+          code: x.code ?? x.serial ?? "-",     // 서버에 코드/시리얼 필드가 뭐인지 확인 필요
+          status: x.status ?? "사용가능",
+        }));
+
+        setRows(mapped);
+      } catch (e) {
+        alert(e.message || "재고 목록 조회 실패");
+        console.error(e);
+      }
+    })();
+  }, []);
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
@@ -48,11 +76,17 @@ export default function Stock() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next } : r)));
   };
 
-  const deleteRow = (id) => {
+  const deleteRow = async (id) => {
     const ok = window.confirm("해당 항목을 삭제할까요?");
     if (!ok) return;
 
-    setRows((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await deleteManageItemApi(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      alert(e.message || "삭제 실패");
+      console.error(e);
+    }
   };
 
   return (
@@ -119,7 +153,15 @@ export default function Stock() {
                     </select>
                     <button
                       className="btn-outline"
-                      onClick={() => alert("상태가 저장되었습니다. (API 연동 필요)")}
+                      onClick={async () => {
+                        try {
+                          await updateManageItemApi(r.id, { status: r.status });
+                          alert("상태가 저장되었습니다.");
+                        } catch (e) {
+                          alert(e.message || "상태 저장 실패");
+                          console.error(e);
+                        }
+                      }}
                     >
                       저장
                     </button>

@@ -18,12 +18,16 @@ import MyPage from "./mypage/MyPage.jsx";
 import MyPageGuide from "./mypage/MyPageGuide.jsx";
 import MyPageRents from "./mypage/MyPageRents.jsx";
 
-// ✅ 예약 상세(세부 예약 이력 조회) 페이지
+// ✅ 예약 상세(세부 예약 이력 조회)
 import MyPageRentDetail from "./mypage/MyPageRentDetail.jsx";
 
-// ✅ 대여 상세(세부 대여 이력 조회) 페이지 (※ 새로 만들 파일)
+// ✅ 대여 상세(세부 대여 이력 조회)
 import MyPageRentalHistoryDetail from "./mypage/MyPageRentalHistoryDetail.jsx";
 
+// ✅ 마이페이지 비밀번호 변경 페이지 (신규)
+import MyPagePassword from "./mypage/MyPagePassword.jsx";
+
+// ✅ 관리자
 import AdminHome from "./admin/Home.jsx";
 import AdminStock from "./admin/Stock.jsx";
 import AdminProfile from "./admin/Profile.jsx";
@@ -71,6 +75,16 @@ root.render(
             element={
               <ProtectedRoute>
                 <MyPageRents />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ 비밀번호 변경 */}
+          <Route
+            path="/mypage/password"
+            element={
+              <ProtectedRoute>
+                <MyPagePassword />
               </ProtectedRoute>
             }
           />

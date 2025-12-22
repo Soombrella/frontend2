@@ -1,6 +1,14 @@
+// src/admin/Home.jsx
+
 import React, { useMemo, useState } from "react";
 import "./Home.css";
 import AdminBottomTab from "./AdminBottomTab";
+import { useEffect } from "react";
+import {
+  getUserRentalsApi,
+  updateUserRentalApi,
+  deleteUserRentalApi,
+} from "../api/manage";
 
 export const STATUS_GROUPS = {
   // 파랑 (대여/결제 흐름)
@@ -118,7 +126,33 @@ const STATUS_OPTIONS = [
 export default function Home() {
   const [itemFilter, setItemFilter] = useState("전체");
   const [coarseStatus, setCoarseStatus] = useState("전체");
-  const [rows, setRows] = useState(SEED);
+  const [rows, setRows] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getUserRentalsApi();
+
+        const list = res?.data ?? res ?? [];
+
+        const mapped = list.map((x) => ({
+          id: x.user_id ?? x.id ?? x.member_id,
+          name: x.name,
+          rentAt: x.rent_at ?? x.rentAt ?? x.rented_at ?? "-",
+          itemType: x.item_type ?? x.itemType ?? "우산",
+          withCable: Boolean(x.with_cable ?? x.withCable),
+          status: x.status,
+          refundAccount: x.refund_account ?? x.refundAccount ?? "-",
+          overdueDays: x.overdue_days ?? x.overdueDays ?? 0,
+        }));
+
+        setRows(mapped);
+      } catch (e) {
+        alert(e.message || "학생 대여 목록 조회 실패");
+        console.error(e);
+      }
+    })();
+  }, []);
 
   /** 상단 필터 */
   const filtered = useMemo(() => {
@@ -143,10 +177,17 @@ export default function Home() {
   };
 
   /** 삭제 기능 */
-  const deleteRow = (id) => {
+  const deleteRow = async (id) => {
     const ok = window.confirm("해당 학생 기록을 삭제할까요?");
     if (!ok) return;
-    setRows((prev) => prev.filter((r) => r.id !== id));
+
+    try {
+      await deleteUserRentalApi(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      alert(e.message || "삭제 실패");
+      console.error(e);
+    }
   };
 
   return (
@@ -260,11 +301,17 @@ export default function Home() {
 
                       <button
                         className="btn-outline"
-                        onClick={() =>
-                          alert(
-                            "상태가 저장되었습니다. (실서버 연동 필요)"
-                          )
-                        }
+                        onClick={async () => {
+                          try {
+                            // 서버가 요구하는 payload 스키마(UserRentalStatusUpdate)에 맞춰야 함
+                            // 보통 { status: r.status } or { rental_status: r.status }
+                            await updateUserRentalApi(r.id, { status: r.status });
+                            alert("상태가 저장되었습니다.");
+                          } catch (e) {
+                            alert(e.message || "상태 저장 실패");
+                            console.error(e);
+                          }
+                        }}
                       >
                         저장
                       </button>

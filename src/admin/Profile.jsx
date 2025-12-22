@@ -1,3 +1,5 @@
+// src/admin/Profile.jsx
+
 import React, { useState } from "react";
 import "./Profile.css";
 import Modal from "../components/Modal"; // Modal.jsx 경로에 맞게 조정
